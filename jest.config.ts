@@ -12,4 +12,5 @@ module.exports = {
   preset: 'ts-jest',
   slowTestThreshold: 1500,
   testTimeout: 10000,
+  setupFilesAfterEnv: ['jest-extended/all'],
 };
