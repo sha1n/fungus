@@ -5,7 +5,7 @@ export default {
   reporters: [
     'default', 
     ['jest-summary-reporter', {failuresOnly: true}], 
-    ['jest-html-reporters', {filename: '.local/jest_test_report.html'}],
+    ['jest-html-reporters', {}],
   ],
   verbose: true,
   maxWorkers: '100%',

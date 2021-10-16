@@ -9,4 +9,4 @@ package-lock.json
 # build
 dist/
 coverage/
-.local/
+jest_html_reporters.html
