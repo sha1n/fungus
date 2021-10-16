@@ -1,7 +1,12 @@
-dist/
-coverage/
-node_modules/
+# IDEs
 .idea/
 .vscode/
+
+# ts/js
+node_modules/
 yarn.lock
 package-lock.json
+# build
+dist/
+coverage/
+jest_html_reporters.html
