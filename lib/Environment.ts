@@ -37,7 +37,7 @@ export class Environment implements Identifiable {
   }
 
   async stop(): Promise<void> {
-    return await this.doStop(this.ctx);
+    return this.doStop(this.ctx);
   }
 
   private getOrCreateControllerFor(service: Service): ServiceController {
@@ -46,7 +46,7 @@ export class Environment implements Identifiable {
 
   private async doStart(ctx: EnvironmentContext): Promise<EnvironmentContext> {
     this.logger.info('starting up...');
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const services = this.servicesGraph.getServices();
       const onError = (e: Error) => {
         this.doStop(ctx)
