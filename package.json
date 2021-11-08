@@ -16,7 +16,7 @@
     "demo": "DEBUG=* node node_modules/ts-node/dist/bin.js -e \"import { main } from './test/demo'; main({minSleepTime: 100, maxSleepTime: 3000});\"",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "npm run lint -s",
-    "prepublish": "tsc"
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "@types/debug": "~4.1.7",
