@@ -1,5 +1,5 @@
 import 'jest-extended';
-import {Environment} from '../lib/Environment';
+import {Environment} from '../../lib/testenv/Environment';
 import {newServiceMock} from './mocks';
 
 describe('Environment', () => {

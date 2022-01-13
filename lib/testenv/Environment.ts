@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { ServiceController } from './ServiceController';
 import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
-import { Logger, newLogger } from './logger'; 
+import { Logger, newLogger } from '../log'; 
 
 
 export class Environment implements Identifiable {
@@ -22,8 +22,10 @@ export class Environment implements Identifiable {
 
   register(service: Service, ...dependencies: Service[]): void {
     this.logger.info(`registering service ${service.id}`);
+    
     const serviceController = this.getOrCreateControllerFor(service);
     this.servicesGraph.addService(serviceController);
+
     dependencies.forEach((dep) => {
       this.servicesGraph.addDependency(
         serviceController,
@@ -47,7 +49,9 @@ export class Environment implements Identifiable {
   private async doStart(ctx: EnvironmentContext): Promise<EnvironmentContext> {
     this.logger.info('starting up...');
     return new Promise((resolve, reject) => {
+
       const services = this.servicesGraph.getServices();
+      
       const onError = (e: Error) => {
         this.doStop(ctx)
           .catch(this.logger.error)

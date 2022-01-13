@@ -1,7 +1,7 @@
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
-import { ServiceController } from '../lib/ServiceController';
-import { EnvironmentContext, ServiceDescriptor, ServiceID } from '../lib/types';
+import { ServiceController } from '../../lib/testenv/ServiceController';
+import { EnvironmentContext, ServiceDescriptor, ServiceID } from '../../lib/testenv/types';
 import { newServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {

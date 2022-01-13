@@ -2,18 +2,27 @@ module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
     plugins: [
-        '@typescript-eslint',
-        'no-floating-promise',
-        'jest'
+      '@typescript-eslint',
+      'import',
+      'jest',
+      'prettier',
+      'unused-imports',
+      'no-floating-promise',
     ],
     extends: [
-        'eslint:recommended',
-        'plugin:jest/recommended',
-        'plugin:@typescript-eslint/recommended',
+      'eslint:recommended',
+      'plugin:@typescript-eslint/recommended',
+      'prettier',
+      'plugin:jest/recommended',
     ],
     env: {
-        'node': true,
-        'jest/globals': true,
+      node: true,
+      'jest/globals': true,
+    },
+    settings: {
+      jest: {
+        version: 27,
+      },
     },
     rules: {
         '@typescript-eslint/no-var-requires': 0,
@@ -27,8 +36,5 @@ module.exports = {
         'jest/prefer-to-have-length': 'warn',
         'jest/valid-expect': 'error',
     },
-    ignorePatterns: ['dist', '**/generated'],
-    overrides: [{
-        files: ['**/*.ts'],
-    }]
+    ignorePatterns: ['dist', 'node_modules', '**/generated']
 };

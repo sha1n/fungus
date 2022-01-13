@@ -1,5 +1,6 @@
-import { Environment, EnvironmentContext, Service } from '../';
-import {Logger, newLogger} from '../lib/logger'; 
+import { EnvironmentContext, Service } from '../../lib/testenv/types';
+import { Environment } from '../../lib/testenv/Environment';
+import {Logger, newLogger} from '../../lib/log'; 
 
 const logger = newLogger('demo-flow');
 

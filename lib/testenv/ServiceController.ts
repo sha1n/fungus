@@ -1,5 +1,5 @@
 import EventEmitter = require('events');
-import { newLogger } from './logger';
+import { newLogger } from '../log';
 import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
 
 
@@ -24,8 +24,10 @@ export class ServiceController extends EventEmitter implements Identifiable {
 
   async onDependencyStarted(serviceDescriptor: ServiceDescriptor, ctx: EnvironmentContext): Promise<void> {
     ServiceController.logger.debug(`dependency started: ${serviceDescriptor.id}`);
+
     this.startedDeps.set(serviceDescriptor.id, serviceDescriptor);
     this.pendingDependencies.delete(serviceDescriptor.id);
+    
     if (this.pendingDependencies.size === 0 && !(this.isStarted() || this.starting)) {
       ServiceController.logger.debug('all dependencies are started');
       await this.start(ctx);
@@ -49,17 +51,22 @@ export class ServiceController extends EventEmitter implements Identifiable {
     return this.service
       .start(ctx)
       .then((meta) => {
+
         const descriptor: ServiceDescriptor = {
           id: this.service.id,
           meta: meta,
         };
+
         ((ctx.services) as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
+
         this.emit('started', descriptor, ctx);
         this.descriptor = descriptor;
+
         return descriptor;
       })
       .catch((error) => {
         this.emit('error', error);
+
         return Promise.reject(error);
       })
       .finally(() => {
@@ -76,10 +83,12 @@ export class ServiceController extends EventEmitter implements Identifiable {
       () => {
         this.emit('stopped', this.service.id);
         this.descriptor = undefined;
+
         return;
       },
       (error) => {
         this.emit('error', error);
+
         return Promise.reject(error);
       }
     );

@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { Service, ServiceDescriptor } from '../lib/types';
+import { Service, ServiceDescriptor } from '../../lib/testenv/types';
 
 export function newServiceMock(
   name: string,
