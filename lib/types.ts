@@ -1,8 +1,8 @@
 export type ServiceID = string;
 
 export interface EnvironmentContext {
-  readonly name: string
-  readonly services: ReadonlyMap<ServiceID, ServiceDescriptor>
+  readonly name: string;
+  readonly services: ReadonlyMap<ServiceID, ServiceDescriptor>;
 }
 
 export interface ServiceDescriptor extends Identifiable {
@@ -17,5 +17,5 @@ export interface Service extends Identifiable {
 }
 
 export interface Identifiable {
-  readonly id: string
+  readonly id: string;
 }

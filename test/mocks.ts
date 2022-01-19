@@ -9,10 +9,7 @@ export function newServiceMock(
   const expectedMeta = { name: name };
   const expectedId = uuid();
 
-  return [
-    new ServiceMock(expectedId, expectedMeta, failOnStart, failOnStop),
-    { id: expectedId, meta: expectedMeta },
-  ];
+  return [new ServiceMock(expectedId, expectedMeta, failOnStart, failOnStop), { id: expectedId, meta: expectedMeta }];
 }
 
 export interface ServiceMetaMock {

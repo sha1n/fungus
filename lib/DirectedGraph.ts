@@ -9,11 +9,11 @@ export class DirectedGraph<T extends Identifiable> {
     }
     return dependencies;
   }
-  
+
   private readonly nodes: Map<string, T> = new Map<string, T>();
   private readonly incomingRefs: Map<string, Set<string>> = new Map<string, Set<string>>();
   private readonly outgoingRefs: Map<string, Set<string>> = new Map<string, Set<string>>();
-  
+
   addNode(node: T): void {
     this.nodes.set(node.id, node);
   }
@@ -21,14 +21,14 @@ export class DirectedGraph<T extends Identifiable> {
   getNode(id: string): T {
     return this.nodes.get(id);
   }
-  
+
   addEdge(from: T, to: T): void {
     this.addNode(from);
     this.addNode(to);
     this.getIncomingRefsOf(to.id).add(from.id);
     this.getOutgoingRefsOf(from.id).add(to.id);
   }
-    
+
   isDirectAcyclic(): boolean {
     const degrees = new Map<string, number>();
     this.nodes.forEach(n => degrees.set(n.id, 0));
@@ -37,33 +37,31 @@ export class DirectedGraph<T extends Identifiable> {
         degrees.set(childId, degrees.get(childId) + 1);
       })
     );
-    
+
     const queue = new Array<string>();
     this.nodes.forEach(n => {
       if (degrees.get(n.id) === 0) {
         queue.push(n.id);
       }
     });
-    
-    
+
     let visitedNodeCount = 0;
-    
+
     while (queue.length > 0) {
       const [nodeId] = queue.splice(0, 1);
       visitedNodeCount += 1;
-      
-      this.getIncomingRefsOf(nodeId).forEach(
-        childId => {
-          degrees.set(childId, degrees.get(childId) - 1);
-          if (degrees.get(childId) === 0) {
-            queue.push(childId);
-          }
-        });
+
+      this.getIncomingRefsOf(nodeId).forEach(childId => {
+        degrees.set(childId, degrees.get(childId) - 1);
+        if (degrees.get(childId) === 0) {
+          queue.push(childId);
+        }
+      });
     }
-    
+
     return visitedNodeCount === this.nodes.size;
   }
-  
+
   reverseTopologicalSort(): Array<T> {
     const values = new Array<T>();
     this.dfs(this.outgoingRefs, this.incomingRefs, n => values.push(n));
@@ -75,7 +73,7 @@ export class DirectedGraph<T extends Identifiable> {
     this.dfs(this.incomingRefs, this.outgoingRefs, n => values.push(n));
     return values;
   }
-  
+
   getRoots(): Array<T> {
     const roots = new Array<T>();
     for (const id of this.roots(this.incomingRefs)) {
@@ -97,7 +95,7 @@ export class DirectedGraph<T extends Identifiable> {
   private getIncomingRefsOf(nodeId: string): Set<string> {
     return DirectedGraph.getRefsOf(nodeId, this.incomingRefs);
   }
-  
+
   private getOutgoingRefsOf(nodeId: string): Set<string> {
     return DirectedGraph.getRefsOf(nodeId, this.outgoingRefs);
   }
@@ -105,12 +103,12 @@ export class DirectedGraph<T extends Identifiable> {
   private dfs(
     forwardRefs: Map<string, Set<string>>,
     backwardsRefs: Map<string, Set<string>>,
-    visit: (n: T) => void,
+    visit: (n: T) => void
   ): void {
     if (!this.isDirectAcyclic()) {
       throw new Error('Not a DAG!');
     }
-    
+
     const stack = new Set<string>();
     const push_children_recursively = (parent: string) => {
       for (const child of forwardRefs.get(parent) || []) {
@@ -121,15 +119,15 @@ export class DirectedGraph<T extends Identifiable> {
         }
       }
     };
-    
+
     for (const root of this.roots(backwardsRefs)) {
       push_children_recursively(root);
       visit(this.nodes.get(root));
       stack.add(root);
     }
   }
-  
-  private* roots(refs: Map<string, Set<string>>): Iterable<string> {
+
+  private *roots(refs: Map<string, Set<string>>): Iterable<string> {
     for (const n of this.nodes.values()) {
       if (!refs.has(n.id) || refs.get(n.id).size === 0) {
         yield n.id;
