@@ -1,17 +1,12 @@
 import { Environment, EnvironmentContext, Service } from '../';
 import { Logger, newLogger } from '../lib/logger';
+import { sleep, TimeUnit } from '@sha1n/about-time';
 
 const logger = newLogger('demo-flow');
 
 interface DemoOptions {
   readonly minSleepTime: number;
   readonly maxSleepTime: number;
-}
-
-function sleep(timeout: number): Promise<void> {
-  return new Promise(resolve => {
-    setTimeout(resolve, timeout);
-  });
 }
 
 function randomInt(min: number, max: number) {
@@ -60,7 +55,7 @@ class DemoService implements Service {
   }
 
   async sleep(): Promise<void> {
-    await sleep(randomInt(this.opts.minSleepTime, this.opts.maxSleepTime));
+    sleep(randomInt(this.opts.minSleepTime, this.opts.maxSleepTime), TimeUnit.Milliseconds);
   }
 }
 
