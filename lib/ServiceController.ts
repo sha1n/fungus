@@ -2,10 +2,9 @@ import EventEmitter = require('events');
 import { newLogger } from './logger';
 import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
 
-
 export class ServiceController extends EventEmitter implements Identifiable {
   private static logger = newLogger('srv-ctrl');
-  
+
   private readonly pendingDependencies: Set<ServiceID>;
   private readonly startedDeps = new Map<ServiceID, ServiceDescriptor>();
   private descriptor: ServiceDescriptor = undefined;
@@ -48,17 +47,17 @@ export class ServiceController extends EventEmitter implements Identifiable {
     this.starting = true;
     return this.service
       .start(ctx)
-      .then((meta) => {
+      .then(meta => {
         const descriptor: ServiceDescriptor = {
           id: this.service.id,
-          meta: meta,
+          meta: meta
         };
-        ((ctx.services) as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
+        (ctx.services as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
         this.emit('started', descriptor, ctx);
         this.descriptor = descriptor;
         return descriptor;
       })
-      .catch((error) => {
+      .catch(error => {
         this.emit('error', error);
         return Promise.reject(error);
       })
@@ -78,7 +77,7 @@ export class ServiceController extends EventEmitter implements Identifiable {
         this.descriptor = undefined;
         return;
       },
-      (error) => {
+      error => {
         this.emit('error', error);
         return Promise.reject(error);
       }

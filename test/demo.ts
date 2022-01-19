@@ -1,15 +1,15 @@
 import { Environment, EnvironmentContext, Service } from '../';
-import {Logger, newLogger} from '../lib/logger'; 
+import { Logger, newLogger } from '../lib/logger';
 
 const logger = newLogger('demo-flow');
 
 interface DemoOptions {
-  readonly minSleepTime: number
-  readonly maxSleepTime: number
+  readonly minSleepTime: number;
+  readonly maxSleepTime: number;
 }
 
 function sleep(timeout: number): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(resolve, timeout);
   });
 }
@@ -37,14 +37,20 @@ class DemoService implements Service {
 
   async start(ctx: EnvironmentContext): Promise<unknown> {
     this.logger.info(`start called with context of env: ${ctx.name}`);
-    this.logger.info(`available services: ${Array.from(ctx.services.values()).map((s) => s.meta).join(', ')}`);
+    this.logger.info(
+      `available services: ${Array.from(ctx.services.values())
+        .map(s => s.meta)
+        .join(', ')}`
+    );
     this.logger.info('starting...');
     await this.sleep();
     const port = randomPort();
     return {
       host: this.toString(),
       port: port,
-      toString: () => { return `protocol://${this.toString()}:${port}`; }
+      toString: () => {
+        return `protocol://${this.toString()}:${port}`;
+      }
     };
   }
   async stop(ctx: EnvironmentContext): Promise<void> {
@@ -75,16 +81,20 @@ async function configureEnvironment(environment: Environment, opts: DemoOptions)
   return environment;
 }
 
-export async function main(opts: DemoOptions = {minSleepTime: 0, maxSleepTime: 50}): Promise<void> {
+export async function main(opts: DemoOptions = { minSleepTime: 0, maxSleepTime: 50 }): Promise<void> {
   const env = new Environment('demo-envr');
   await configureEnvironment(env, opts)
-    .then((env) => {
+    .then(env => {
       logger.info('starting environment...');
       return env.start();
     })
-    .then((ctx) => {
+    .then(ctx => {
       logger.info('environment started');
-      logger.info(`environment services: ${Array.from(ctx.services.values()).map((s) => s.meta).join(', ')}`);
+      logger.info(
+        `environment services: ${Array.from(ctx.services.values())
+          .map(s => s.meta)
+          .join(', ')}`
+      );
     })
     .then(() => {
       logger.info('stopping environment...');

@@ -2,8 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { ServiceController } from './ServiceController';
 import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
-import { Logger, newLogger } from './logger'; 
-
+import { Logger, newLogger } from './logger';
 
 export class Environment implements Identifiable {
   private servicesGraph = new ServiceGraph();
@@ -16,7 +15,7 @@ export class Environment implements Identifiable {
     this.logger = newLogger(this.id);
     this.ctx = {
       name: this.id,
-      services: new Map<ServiceID, ServiceDescriptor>(),
+      services: new Map<ServiceID, ServiceDescriptor>()
     };
   }
 
@@ -24,11 +23,8 @@ export class Environment implements Identifiable {
     this.logger.info(`registering service ${service.id}`);
     const serviceController = this.getOrCreateControllerFor(service);
     this.servicesGraph.addService(serviceController);
-    dependencies.forEach((dep) => {
-      this.servicesGraph.addDependency(
-        serviceController,
-        this.getOrCreateControllerFor(dep),
-      );
+    dependencies.forEach(dep => {
+      this.servicesGraph.addDependency(serviceController, this.getOrCreateControllerFor(dep));
     });
   }
 
@@ -59,33 +55,28 @@ export class Environment implements Identifiable {
         service.prependOnceListener('started', (descriptor: ServiceDescriptor, ctx: EnvironmentContext) => {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', onError);
-          ((ctx.services) as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
+          (ctx.services as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
           if (ctx.services.size === services.length) {
             resolve(ctx);
           }
         });
       }
 
-      Promise.all(
-        this.servicesGraph.getBootstrapServices().map((s) => s.start(ctx).catch(this.logger.error))
-      );
+      Promise.all(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx).catch(this.logger.error)));
     });
   }
 
   private async doStop(ctx: EnvironmentContext): Promise<void> {
     this.logger.info('stopping...');
-    return Promise.allSettled(
-      this.servicesGraph.getShutdownSequence().map((s) => s.stop(ctx))
-    ).then(() => {
+    return Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx))).then(() => {
       return;
     });
   }
 }
 
-
 class ServiceGraph {
   private static logger = newLogger('srv-graph');
-  
+
   private graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
 
   addService(service: ServiceController): void {
@@ -103,9 +94,7 @@ class ServiceGraph {
     service.addDependency(dependency);
 
     if (!this.graph.isDirectAcyclic()) {
-      throw new Error(
-        `the dependency from ${service.id} to ${dependency.id} forms a cycle.`
-      );
+      throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
     dependency.once('started', (descriptor: ServiceDescriptor, ctx: EnvironmentContext) =>
       service.onDependencyStarted(descriptor, ctx).catch(ServiceGraph.logger.error)
