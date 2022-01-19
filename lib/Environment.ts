@@ -4,9 +4,14 @@ import { ServiceController } from './ServiceController';
 import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
 import { Logger, newLogger } from './logger';
 
+type InternalEnvContext = {
+  readonly name: string;
+  readonly services: Map<ServiceID, ServiceDescriptor>;
+};
+
 export class Environment implements Identifiable {
   private servicesGraph = new ServiceGraph();
-  private ctx: EnvironmentContext;
+  private ctx: InternalEnvContext;
   private logger: Logger;
   readonly id: string;
 
@@ -40,7 +45,7 @@ export class Environment implements Identifiable {
     return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
-  private async doStart(ctx: EnvironmentContext): Promise<EnvironmentContext> {
+  private async doStart(ctx: InternalEnvContext): Promise<EnvironmentContext> {
     this.logger.info('starting up...');
     return new Promise((resolve, reject) => {
       const services = this.servicesGraph.getServices();
@@ -52,10 +57,10 @@ export class Environment implements Identifiable {
 
       for (const service of services) {
         service.prependOnceListener('error', onError);
-        service.prependOnceListener('started', (descriptor: ServiceDescriptor, ctx: EnvironmentContext) => {
+        service.prependOnceListener('started', (descriptor: ServiceDescriptor, ctx: InternalEnvContext) => {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', onError);
-          (ctx.services as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
+          ctx.services.set(descriptor.id, descriptor);
           if (ctx.services.size === services.length) {
             resolve(ctx);
           }
