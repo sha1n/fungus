@@ -1,8 +1,8 @@
 {
-  "name": "@sha1n/ts-toolkit",
+  "name": "@sha1n/fungus",
   "version": "0.0.1",
-  "description": "Node TypeScript template module",
-  "repository": "https://github.com/sha1n/ts-toolkit",
+  "description": "A dependency based service graph controller library",
+  "repository": "https://github.com/sha1n/fungus",
   "author": "Shai Nagar",
   "license": "MIT",
   "types": "./dist/index.d.ts",

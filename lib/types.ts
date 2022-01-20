@@ -1,6 +1,6 @@
 export type ServiceID = string;
 
-export interface EnvironmentContext {
+export interface EnvContext {
   readonly name: string;
   readonly services: ReadonlyMap<ServiceID, ServiceDescriptor>;
 }
@@ -11,9 +11,9 @@ export interface ServiceDescriptor extends Identifiable {
 }
 
 export interface Service extends Identifiable {
-  start(ctx: EnvironmentContext): Promise<unknown>;
+  start(ctx: EnvContext): Promise<unknown>;
 
-  stop(ctx: EnvironmentContext): Promise<void>;
+  stop(ctx: EnvContext): Promise<void>;
 }
 
 export interface Identifiable {

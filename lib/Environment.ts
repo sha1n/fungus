@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { ServiceController } from './ServiceController';
-import { Identifiable, EnvironmentContext, Service, ServiceDescriptor, ServiceID } from './types';
+import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceID } from './types';
 import { Logger, newLogger } from './logger';
 
 type InternalEnvContext = {
@@ -33,7 +33,7 @@ export class Environment implements Identifiable {
     });
   }
 
-  async start(): Promise<EnvironmentContext> {
+  async start(): Promise<EnvContext> {
     return this.doStart(this.ctx);
   }
 
@@ -45,7 +45,7 @@ export class Environment implements Identifiable {
     return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
-  private async doStart(ctx: InternalEnvContext): Promise<EnvironmentContext> {
+  private async doStart(ctx: InternalEnvContext): Promise<EnvContext> {
     this.logger.info('starting up...');
     return new Promise((resolve, reject) => {
       const services = this.servicesGraph.getServices();
@@ -71,7 +71,7 @@ export class Environment implements Identifiable {
     });
   }
 
-  private async doStop(ctx: EnvironmentContext): Promise<void> {
+  private async doStop(ctx: EnvContext): Promise<void> {
     this.logger.info('stopping...');
     return Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx))).then(() => {
       return;
@@ -101,7 +101,7 @@ class ServiceGraph {
     if (!this.graph.isDirectAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
-    dependency.once('started', (descriptor: ServiceDescriptor, ctx: EnvironmentContext) =>
+    dependency.once('started', (descriptor: ServiceDescriptor, ctx: EnvContext) =>
       service.onDependencyStarted(descriptor, ctx).catch(ServiceGraph.logger.error)
     );
   }
