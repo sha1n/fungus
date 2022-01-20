@@ -1,6 +1,6 @@
 import { Environment, EnvironmentContext, Service } from '../';
 import { Logger, newLogger } from '../lib/logger';
-import { sleep, TimeUnit } from '@sha1n/about-time';
+import { delay } from '@sha1n/about-time';
 
 const logger = newLogger('demo-flow');
 
@@ -37,8 +37,10 @@ class DemoService implements Service {
         .map(s => s.meta)
         .join(', ')}`
     );
-    this.logger.info('starting...');
-    await this.sleep();
+
+    this.logger.info(`staring ${this.toString()}...`);
+    await this.delayAndLog('started');
+
     const port = randomPort();
     return {
       host: this.toString(),
@@ -50,12 +52,13 @@ class DemoService implements Service {
   }
   async stop(ctx: EnvironmentContext): Promise<void> {
     this.logger.info(`stop called with context of env: ${ctx.name}`);
-    this.logger.info('stopping...');
-    await this.sleep();
+    this.logger.info(`stopping ${this.toString()}...`);
+    await this.delayAndLog('stopped');
   }
 
-  async sleep(): Promise<void> {
-    sleep(randomInt(this.opts.minSleepTime, this.opts.maxSleepTime), TimeUnit.Milliseconds);
+  async delayAndLog(action: 'started' | 'stopped'): Promise<void> {
+    const t = randomInt(this.opts.minSleepTime, this.opts.maxSleepTime);
+    await delay(() => this.logger.info(`${this.toString()} ${action}`), t);
   }
 }
 

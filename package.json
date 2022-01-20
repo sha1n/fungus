@@ -13,7 +13,7 @@
     "prebuild": "yarn run clean",
     "build": "tsc",
     "test": "DEBUG=error:* jest --coverage",
-    "demo": "DEBUG=* node node_modules/ts-node/dist/bin.js -e \"import { main } from './test/demo'; main({minSleepTime: 100, maxSleepTime: 3000});\"",
+    "demo": "DEBUG=* npx ts-node -e \"import { main } from './test/demo'; main({minSleepTime: 1000, maxSleepTime: 3000});\"",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",
     "prepublish": "yarn run build"
