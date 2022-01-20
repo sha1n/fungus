@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { Service, ServiceDescriptor } from '../lib/types';
 
-export function newServiceMock(
+export function aServiceMock(
   name: string,
   failOnStart?: boolean,
   failOnStop?: boolean

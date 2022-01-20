@@ -2,13 +2,13 @@ import 'jest-extended';
 import { v4 as uuid } from 'uuid';
 import { ServiceController } from '../lib/ServiceController';
 import { EnvContext, ServiceDescriptor, ServiceID } from '../lib/types';
-import { newServiceMock, ServiceMock, StartError, StopError } from './mocks';
+import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
   describe('start', () => {
     test('should return service descriptor', async () => {
-      const ctx = fakeContext();
-      const [controller, service, expectedDescriptor] = newServiceController('s1');
+      const ctx = anEnvContext();
+      const [controller, service, expectedDescriptor] = aServiceController('s1');
 
       expect(service.startCalls).toEqual(0);
       await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor);
@@ -16,8 +16,8 @@ describe('ServiceController', () => {
     });
 
     test('should return descriptor immediately when already started', async () => {
-      const ctx = fakeContext();
-      const [controller, service, expectedDescriptor] = newServiceController('s1');
+      const ctx = anEnvContext();
+      const [controller, service, expectedDescriptor] = aServiceController('s1');
 
       await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor);
       await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor);
@@ -26,9 +26,9 @@ describe('ServiceController', () => {
     });
 
     test('should emit "started" event when started', async () => {
-      const ctx = fakeContext();
+      const ctx = anEnvContext();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [controller, _, expectedDescriptor] = newServiceController('s1');
+      const [controller, _, expectedDescriptor] = aServiceController('s1');
       const startedPromise = new Promise(resolve => {
         controller.on('started', resolve);
       });
@@ -40,8 +40,8 @@ describe('ServiceController', () => {
     });
 
     test('should reject and emit an "error" event when fails to start', async () => {
-      const ctx = fakeContext();
-      const [controller] = newServiceController('s1', true);
+      const ctx = anEnvContext();
+      const [controller] = aServiceController('s1', true);
       const errorPromise = new Promise(resolve => {
         controller.on('error', resolve);
       });
@@ -53,8 +53,8 @@ describe('ServiceController', () => {
 
   describe('stop', () => {
     test('should stop the service', async () => {
-      const ctx = fakeContext();
-      const [controller, service] = newServiceController('s1');
+      const ctx = anEnvContext();
+      const [controller, service] = aServiceController('s1');
       await controller.start(ctx);
 
       expect(service.stopCalls).toEqual(0);
@@ -63,8 +63,8 @@ describe('ServiceController', () => {
     });
 
     test('should return immediately when already stopped', async () => {
-      const ctx = fakeContext();
-      const [controller, service] = newServiceController('s1');
+      const ctx = anEnvContext();
+      const [controller, service] = aServiceController('s1');
       await controller.start(ctx);
 
       await expect(controller.stop(ctx)).toResolve();
@@ -73,9 +73,9 @@ describe('ServiceController', () => {
     });
 
     test('should emit "stopped" event when stopped', async () => {
-      const ctx = fakeContext();
+      const ctx = anEnvContext();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [controller, _, expectedDescriptor] = newServiceController('s1');
+      const [controller, _, expectedDescriptor] = aServiceController('s1');
       const stoppedPromise = new Promise(resolve => {
         controller.on('started', resolve);
       });
@@ -88,8 +88,8 @@ describe('ServiceController', () => {
     });
 
     test('should reject and emit an "error" event when fails to start', async () => {
-      const ctx = fakeContext();
-      const [controller] = newServiceController('s1', false, true);
+      const ctx = anEnvContext();
+      const [controller] = aServiceController('s1', false, true);
       const errorPromise = new Promise(resolve => {
         controller.on('error', resolve);
       });
@@ -102,18 +102,18 @@ describe('ServiceController', () => {
   });
 });
 
-function fakeContext(): EnvContext {
+function anEnvContext(): EnvContext {
   return {
     name: `env-${uuid()}`,
     services: new Map<ServiceID, ServiceDescriptor>()
   };
 }
 
-function newServiceController(
+function aServiceController(
   serviceName: string,
   failOnStart?: boolean,
   failOnStop?: boolean
 ): [ServiceController, ServiceMock, ServiceDescriptor] {
-  const [service, descriptor] = newServiceMock(serviceName, failOnStart, failOnStop);
+  const [service, descriptor] = aServiceMock(serviceName, failOnStart, failOnStop);
   return [new ServiceController(service), service, descriptor];
 }
