@@ -1,15 +1,19 @@
-import { debug as dbg } from 'debug';
+import { debug } from 'debug';
 
-export interface Logger {
-  info(message: string): void;
-  debug(message: string): void;
-  error(message: string): void;
+const rootNamespace = 'fungus';
+
+interface Logger {
+  info(message: string, ...args: []): void;
+  debug(message: string, ...args: []): void;
+  error(message: string, ...args: []): void;
 }
 
-export function newLogger(namespace: string): Logger {
+function createLogger(namespace: string): Logger {
   return {
-    info: dbg(`info:${namespace}`),
-    debug: dbg(`debug:${namespace}`),
-    error: dbg(`error:${namespace}`)
+    info: debug(`${rootNamespace}:info:${namespace}`),
+    debug: debug(`${rootNamespace}:debug:${namespace}`),
+    error: debug(`${rootNamespace}:error:${namespace}`)
   };
 }
+
+export { Logger, createLogger };

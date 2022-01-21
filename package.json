@@ -8,11 +8,20 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "exports": "./dist/index.js",
+  "keywords": [
+    "service",
+    "controller",
+    "dependencies",
+    "dag",
+    "directed-acyclic-graph",
+    "graph",
+    "bootstrap"
+  ],
   "scripts": {
     "clean": "rm -rf ./dist",
     "prebuild": "yarn run clean",
     "build": "tsc",
-    "test": "DEBUG=error:* jest --coverage",
+    "test": "jest --coverage",
     "demo": "DEBUG=* npx ts-node -e \"import { main } from './test/demo'; main({minSleepTime: 1000, maxSleepTime: 3000});\"",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",

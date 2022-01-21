@@ -1,7 +1,7 @@
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
 import { ServiceController } from '../lib/ServiceController';
-import { EnvContext, ServiceDescriptor, ServiceID } from '../lib/types';
+import { EnvContext, ServiceDescriptor, ServiceId } from '../lib/types';
 import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
@@ -105,7 +105,7 @@ describe('ServiceController', () => {
 function anEnvContext(): EnvContext {
   return {
     name: `env-${uuid()}`,
-    services: new Map<ServiceID, ServiceDescriptor>()
+    services: new Map<ServiceId, ServiceDescriptor>()
   };
 }
 
