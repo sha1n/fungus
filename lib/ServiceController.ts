@@ -2,9 +2,9 @@ import EventEmitter = require('events');
 import { createLogger } from './logger';
 import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from './types';
 
-class ServiceController extends EventEmitter implements Identifiable {
-  private static logger = createLogger('srv-ctrl');
+const logger = createLogger('srv-ctrl');
 
+class ServiceController extends EventEmitter implements Identifiable {
   private readonly pendingDependencies: Set<ServiceId>;
   private readonly startedDeps = new Map<ServiceId, ServiceDescriptor>();
   private descriptor: ServiceDescriptor = undefined;
@@ -22,11 +22,11 @@ class ServiceController extends EventEmitter implements Identifiable {
   }
 
   async onDependencyStarted(serviceDescriptor: ServiceDescriptor, ctx: EnvContext): Promise<void> {
-    ServiceController.logger.debug(`${this.id}: dependency started -> ${serviceDescriptor.id}`);
+    logger.debug(`${this.id}: dependency started -> ${serviceDescriptor.id}`);
     this.startedDeps.set(serviceDescriptor.id, serviceDescriptor);
     this.pendingDependencies.delete(serviceDescriptor.id);
     if (this.pendingDependencies.size === 0 && !(this.isStarted() || this.starting)) {
-      ServiceController.logger.debug('all dependencies are started');
+      logger.debug(`${this.id}: all dependencies are started`);
       await this.start(ctx);
     }
   }
