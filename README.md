@@ -19,8 +19,6 @@ _______\|/__________\\;_\\//___\|/________
 # Fungus 🍄
 An experimental library for starting and stopping multi-service environments correctly and efficiently based on declared dependencies between them.
 
-**Not published to the public npm registry at this point.**
-
 - [Fungus 🍄](#fungus-)
   - [Demo](#demo)
 
