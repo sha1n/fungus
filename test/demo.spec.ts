@@ -1,4 +1,4 @@
-import { main } from './demo';
+import { main } from '../examples';
 import 'jest-extended';
 
 describe('Demo', () => {

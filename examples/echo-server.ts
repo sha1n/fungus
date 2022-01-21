@@ -1,13 +1,18 @@
 import http from 'http';
 import { createLogger } from '../lib/logger';
 import { sleep } from '@sha1n/about-time';
+import { AddressInfo } from 'net';
 
 const logger = createLogger('echo-serv');
 
-function randomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1) + min);
+function realisticPauseTime(): number {
+  if (process.env['DEMO']) {
+    const min = 1000;
+    const max = 3000;
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  return 0;
 }
 
 type ServerHandle = {
@@ -31,17 +36,17 @@ export default function start(): Promise<ServerHandle> {
         });
       })
       .listen(0, 'localhost', () => {
-        const { address, port } = server.address() as any;
+        const { address, port } = server.address() as AddressInfo;
         logger.info('HTTP server listening on localhost:%s', port);
 
         const stop = () =>
           new Promise<void>(resolve => {
             server.close(); // good enough for the demo
-            sleep(randomInt(100, 1000)) // making it feel more real
+            sleep(realisticPauseTime()) // making it feel more real
               .then(resolve);
           });
 
-        sleep(randomInt(1000, 3000)) // making it feel more real
+        sleep(realisticPauseTime()) // making it feel more real
           .then(() => resolve({ address, port, stop }));
       });
   });
