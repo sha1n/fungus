@@ -8,8 +8,8 @@ describe('Environment', () => {
     const [service1] = aServiceMock('s1');
     const [service2] = aServiceMock('s2');
 
-    env.register(service1, service2);
-    expect(() => env.register(service2, service1)).toThrowError();
+    env.register(service1, [service2]);
+    expect(() => env.register(service2, [service1])).toThrowError();
   });
 
   describe('start', () => {
@@ -21,8 +21,8 @@ describe('Environment', () => {
       const [service4, descriptor4] = aServiceMock('s4');
       const [service5, descriptor5] = aServiceMock('s5');
 
-      env.register(service2, service1, service3, service4);
-      env.register(service4, service3);
+      env.register(service2, [service1, service3, service4]);
+      env.register(service4, [service3]);
       env.register(service5);
 
       const ctx = await env.start();
@@ -51,10 +51,10 @@ describe('Environment', () => {
       const [service4] = aServiceMock('s4');
       const [service5] = aServiceMock('s5');
 
-      env.register(service1, service2);
-      env.register(service2, service3);
-      env.register(service3, service4);
-      env.register(service4, service5);
+      env.register(service1, [service2]);
+      env.register(service2, [service3]);
+      env.register(service3, [service4]);
+      env.register(service4, [service5]);
 
       await expect(env.start()).toReject();
 
@@ -80,8 +80,8 @@ describe('Environment', () => {
       const [service3] = aServiceMock('s3');
       const [service4] = aServiceMock('s4');
 
-      env.register(service2, service1, service3, service4);
-      env.register(service4, service3);
+      env.register(service2, [service1, service3, service4]);
+      env.register(service4, [service3]);
 
       await env.start();
       await env.stop();
@@ -104,9 +104,9 @@ describe('Environment', () => {
       const [service3] = aServiceMock('s3');
       const [service4] = aServiceMock('s4');
 
-      env.register(service4, service3);
-      env.register(service3, service2);
-      env.register(service2, service1);
+      env.register(service4, [service3]);
+      env.register(service3, [service2]);
+      env.register(service2, [service1]);
 
       await env.start();
       await expect(env.stop()).toResolve();

@@ -83,9 +83,9 @@ async function configureEnvironment(environment: Environment): Promise<Environme
   const serviceD = new DemoService('D');
   const serviceE = new DemoService('E');
 
-  environment.register(serviceC, serviceA, serviceB);
-  environment.register(serviceE, serviceC, serviceD);
-  environment.register(serviceD, serviceC);
+  environment.register(serviceC, [serviceA, serviceB]);
+  environment.register(serviceE, [serviceC, serviceD]);
+  environment.register(serviceD, [serviceC]);
   environment.register(serviceC);
 
   return environment;
