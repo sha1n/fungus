@@ -1,17 +1,17 @@
 import EventEmitter = require('events');
-import { newLogger } from './logger';
-import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceID } from './types';
+import { createLogger } from './logger';
+import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from './types';
 
-export class ServiceController extends EventEmitter implements Identifiable {
-  private static logger = newLogger('srv-ctrl');
+class ServiceController extends EventEmitter implements Identifiable {
+  private static logger = createLogger('srv-ctrl');
 
-  private readonly pendingDependencies: Set<ServiceID>;
-  private readonly startedDeps = new Map<ServiceID, ServiceDescriptor>();
+  private readonly pendingDependencies: Set<ServiceId>;
+  private readonly startedDeps = new Map<ServiceId, ServiceDescriptor>();
   private descriptor: ServiceDescriptor = undefined;
   private starting = false;
   readonly id: string;
 
-  constructor(readonly service: Service, ...deps: ReadonlyArray<ServiceID>) {
+  constructor(readonly service: Service, ...deps: ReadonlyArray<ServiceId>) {
     super();
     this.pendingDependencies = new Set(...deps);
     this.id = service.id;
@@ -52,7 +52,7 @@ export class ServiceController extends EventEmitter implements Identifiable {
           id: this.service.id,
           meta: meta
         };
-        (ctx.services as Map<ServiceID, ServiceDescriptor>).set(descriptor.id, descriptor);
+        (ctx.services as Map<ServiceId, ServiceDescriptor>).set(descriptor.id, descriptor);
         this.emit('started', descriptor, ctx);
         this.descriptor = descriptor;
         return descriptor;
@@ -84,3 +84,5 @@ export class ServiceController extends EventEmitter implements Identifiable {
     );
   };
 }
+
+export { ServiceController };

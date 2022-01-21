@@ -1,8 +1,8 @@
 import { Environment, EnvironmentContext, Service } from '../';
-import { Logger, newLogger } from '../lib/logger';
+import { Logger, createLogger } from '../lib/logger';
 import { delay } from '@sha1n/about-time';
 
-const logger = newLogger('demo-flow');
+const logger = createLogger('demo-flow');
 
 interface DemoOptions {
   readonly minSleepTime: number;
@@ -23,7 +23,7 @@ class DemoService implements Service {
   private logger: Logger;
 
   constructor(readonly id: string, private opts: DemoOptions) {
-    this.logger = newLogger(this.toString());
+    this.logger = createLogger(this.toString());
   }
 
   toString(): string {

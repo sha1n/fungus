@@ -1,15 +1,15 @@
 import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { ServiceController } from './ServiceController';
-import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceID } from './types';
-import { Logger, newLogger } from './logger';
+import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from './types';
+import { Logger, createLogger } from './logger';
 
 type InternalEnvContext = {
   readonly name: string;
-  readonly services: Map<ServiceID, ServiceDescriptor>;
+  readonly services: Map<ServiceId, ServiceDescriptor>;
 };
 
-export class Environment implements Identifiable {
+class Environment implements Identifiable {
   private servicesGraph = new ServiceGraph();
   private ctx: InternalEnvContext;
   private logger: Logger;
@@ -17,10 +17,10 @@ export class Environment implements Identifiable {
 
   constructor(name?: string) {
     this.id = name || `env-${uuid()}`;
-    this.logger = newLogger(this.id);
+    this.logger = createLogger(this.id);
     this.ctx = {
       name: this.id,
-      services: new Map<ServiceID, ServiceDescriptor>()
+      services: new Map<ServiceId, ServiceDescriptor>()
     };
   }
 
@@ -80,7 +80,7 @@ export class Environment implements Identifiable {
 }
 
 class ServiceGraph {
-  private static logger = newLogger('srv-graph');
+  private static logger = createLogger('srv-graph');
 
   private graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
 
@@ -118,3 +118,5 @@ class ServiceGraph {
     return this.graph.reverseTopologicalSort();
   }
 }
+
+export { Environment };

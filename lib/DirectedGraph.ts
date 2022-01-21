@@ -1,6 +1,6 @@
 import { Identifiable } from './types';
 
-export class DirectedGraph<T extends Identifiable> {
+class DirectedGraph<T extends Identifiable> {
   private static getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
     let dependencies = refsMap.get(id);
     if (!dependencies) {
@@ -135,3 +135,5 @@ export class DirectedGraph<T extends Identifiable> {
     }
   }
 }
+
+export { DirectedGraph };
