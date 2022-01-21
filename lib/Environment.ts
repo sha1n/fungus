@@ -24,11 +24,11 @@ class Environment implements Identifiable {
     };
   }
 
-  register(service: Service, ...dependencies: Service[]): void {
+  register(service: Service, dependencies?: ReadonlyArray<Service>): void {
     this.logger.info(`registering service ${service.id}`);
     const serviceController = this.getOrCreateControllerFor(service);
     this.servicesGraph.addService(serviceController);
-    dependencies.forEach(dep => {
+    dependencies?.forEach(dep => {
       this.servicesGraph.addDependency(serviceController, this.getOrCreateControllerFor(dep));
     });
   }
