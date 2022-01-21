@@ -22,7 +22,7 @@ class ServiceController extends EventEmitter implements Identifiable {
   }
 
   async onDependencyStarted(serviceDescriptor: ServiceDescriptor, ctx: EnvContext): Promise<void> {
-    ServiceController.logger.debug(`dependency started: ${serviceDescriptor.id}`);
+    ServiceController.logger.debug(`${this.id}: dependency started -> ${serviceDescriptor.id}`);
     this.startedDeps.set(serviceDescriptor.id, serviceDescriptor);
     this.pendingDependencies.delete(serviceDescriptor.id);
     if (this.pendingDependencies.size === 0 && !(this.isStarted() || this.starting)) {

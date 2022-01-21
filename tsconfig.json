@@ -4,6 +4,7 @@
     "target": "ES2015",
     "module": "commonjs",
     "moduleResolution": "node",
+    "declarationDir": "./dist/types",
     "outDir": "./dist",
     "skipLibCheck": true,
     "esModuleInterop": true,

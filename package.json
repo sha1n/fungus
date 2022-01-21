@@ -6,7 +6,7 @@
   "author": "Shai Nagar",
   "license": "MIT",
   "types": "./dist/index.d.ts",
-  "main": "./dist/index.js",
+  "main": "./dist",
   "exports": "./dist/index.js",
   "keywords": [
     "service",
@@ -22,7 +22,7 @@
     "prebuild": "yarn run clean",
     "build": "tsc",
     "test": "jest --coverage",
-    "demo": "DEBUG=* npx ts-node -e \"import { main } from './test/demo'; main({minSleepTime: 1000, maxSleepTime: 3000});\"",
+    "demo": "DEBUG=* yarn run ts-node -e \"import { main } from './examples'; main();\"",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",
     "prepublish": "yarn run build"
