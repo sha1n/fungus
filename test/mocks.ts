@@ -5,7 +5,7 @@ export function aServiceMock(
   name: string,
   failOnStart?: boolean,
   failOnStop?: boolean
-): [ServiceMock, ServiceDescriptor] {
+): [ServiceMock, ServiceDescriptor<ServiceMetaMock>] {
   const expectedMeta = { name: name };
   const expectedId = uuid();
 
@@ -27,7 +27,7 @@ export class StopError extends Error {
   }
 }
 
-export class ServiceMock implements Service {
+export class ServiceMock implements Service<ServiceMetaMock> {
   public static startSequence = 0;
   public static stopSequence = 0;
   public startCalls = 0;

@@ -1,87 +1,17 @@
-import { retryAround, simpleRetryPolicy, TimeUnit } from '@sha1n/about-time';
-import http from 'http';
-import { Environment, EnvironmentContext, Service } from '..';
-import { createLogger, Logger } from '../lib/logger';
-import startEchoServer from './echo-server';
+import { Environment } from '..';
+import { createLogger } from '../lib/logger';
+import { EchoService } from './EchoService';
 
 const logger = createLogger('demo-flow');
-
-type DemoServiceMeta = {
-  host: string;
-  port: number;
-  url: string;
-  toString: () => string;
-};
-
-class DemoService implements Service {
-  private logger: Logger;
-  private stopHttpServer: () => Promise<void>;
-  private url: string;
-
-  constructor(readonly id: string) {
-    this.logger = createLogger(this.toString());
-  }
-
-  toString(): string {
-    return `service-${this.id}`;
-  }
-
-  async start(ctx: EnvironmentContext): Promise<DemoServiceMeta> {
-    this.logger.info(`start called with context of env: ${ctx.name}`);
-    this.logger.info(
-      `available services: ${Array.from(ctx.services.values())
-        .map(s => s.meta)
-        .join(', ')}`
-    );
-
-    this.logger.info(`staring ${this.toString()}...`);
-    const { stop, address, port } = await startEchoServer();
-
-    this.stopHttpServer = stop;
-    this.url = `http://${address}:${port}`;
-
-    await retryAround(() => isAlive(this.url), simpleRetryPolicy(3, 1, { units: TimeUnit.Seconds }));
-
-    return {
-      host: address,
-      port: port,
-      url: this.url,
-      toString: () => {
-        return `[${this.id} -> ${this.url}]`;
-      }
-    };
-  }
-
-  async stop(ctx: EnvironmentContext): Promise<void> {
-    this.logger.info(`stop called with context of env: ${ctx.name}`);
-    if (this.stopHttpServer) {
-      this.logger.info(`stopping ${this.toString()}...`);
-      await this.stopHttpServer();
-    }
-  }
-}
-
-async function isAlive(url: string): Promise<boolean> {
-  logger.info(`checking whether '${url}' is alive`);
-  return new Promise((resolve, reject) => {
-    http.get(url, res => {
-      if (!res.statusCode && res.statusCode !== 200) {
-        reject(new Error(`Server returned status ${res.statusCode}`));
-      }
-
-      resolve(true);
-    });
-  });
-}
 
 async function configureEnvironment(environment: Environment): Promise<Environment> {
   logger.info('configuring environment services...');
 
-  const serviceA = new DemoService('A');
-  const serviceB = new DemoService('B');
-  const serviceC = new DemoService('C');
-  const serviceD = new DemoService('D');
-  const serviceE = new DemoService('E');
+  const serviceA = new EchoService('A');
+  const serviceB = new EchoService('B');
+  const serviceC = new EchoService('C');
+  const serviceD = new EchoService('D');
+  const serviceE = new EchoService('E');
 
   environment.register(serviceC, [serviceA, serviceB]);
   environment.register(serviceE, [serviceC, serviceD]);

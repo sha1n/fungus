@@ -2,7 +2,7 @@ import 'jest-extended';
 import { v4 as uuid } from 'uuid';
 import { ServiceController } from '../lib/ServiceController';
 import { EnvContext, ServiceDescriptor, ServiceId } from '../lib/types';
-import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
+import { aServiceMock, ServiceMetaMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
   describe('start', () => {
@@ -105,7 +105,7 @@ describe('ServiceController', () => {
 function anEnvContext(): EnvContext {
   return {
     name: `env-${uuid()}`,
-    services: new Map<ServiceId, ServiceDescriptor>()
+    services: new Map<ServiceId, ServiceDescriptor<ServiceMetaMock>>()
   };
 }
 
@@ -113,7 +113,7 @@ function aServiceController(
   serviceName: string,
   failOnStart?: boolean,
   failOnStop?: boolean
-): [ServiceController, ServiceMock, ServiceDescriptor] {
+): [ServiceController<ServiceMetaMock>, ServiceMock, ServiceDescriptor<ServiceMetaMock>] {
   const [service, descriptor] = aServiceMock(serviceName, failOnStart, failOnStop);
   return [new ServiceController(service), service, descriptor];
 }

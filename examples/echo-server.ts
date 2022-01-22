@@ -1,7 +1,7 @@
-import http from 'http';
-import { createLogger } from '../lib/logger';
 import { sleep } from '@sha1n/about-time';
+import http from 'http';
 import { AddressInfo } from 'net';
+import { createLogger } from '../lib/logger';
 
 const logger = createLogger('echo-serv');
 
@@ -16,6 +16,7 @@ function realisticPauseTime(): number {
 }
 
 type ServerHandle = {
+  scheme: string;
   address: string;
   port: number;
   stop: () => Promise<void>;
@@ -47,7 +48,7 @@ export default function start(): Promise<ServerHandle> {
           });
 
         sleep(realisticPauseTime()) // making it feel more real
-          .then(() => resolve({ address, port, stop }));
+          .then(() => resolve({ scheme: 'http', address, port, stop }));
       });
   });
 }

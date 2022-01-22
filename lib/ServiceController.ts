@@ -4,24 +4,24 @@ import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from 
 
 const logger = createLogger('srv-ctrl');
 
-class ServiceController extends EventEmitter implements Identifiable {
+class ServiceController<T> extends EventEmitter implements Identifiable {
   private readonly pendingDependencies: Set<ServiceId>;
-  private readonly startedDeps = new Map<ServiceId, ServiceDescriptor>();
-  private descriptor: ServiceDescriptor = undefined;
+  private readonly startedDeps = new Map<ServiceId, ServiceDescriptor<T>>();
+  private descriptor: ServiceDescriptor<T> = undefined;
   private starting = false;
   readonly id: string;
 
-  constructor(readonly service: Service, ...deps: ReadonlyArray<ServiceId>) {
+  constructor(readonly service: Service<T>, ...deps: ReadonlyArray<ServiceId>) {
     super();
     this.pendingDependencies = new Set(...deps);
     this.id = service.id;
   }
 
-  addDependency(dep: Service): void {
+  addDependency(dep: Service<T>): void {
     this.pendingDependencies.add(dep.id);
   }
 
-  async onDependencyStarted(serviceDescriptor: ServiceDescriptor, ctx: EnvContext): Promise<void> {
+  async onDependencyStarted(serviceDescriptor: ServiceDescriptor<T>, ctx: EnvContext): Promise<void> {
     logger.debug(`${this.id}: dependency started -> ${serviceDescriptor.id}`);
     this.startedDeps.set(serviceDescriptor.id, serviceDescriptor);
     this.pendingDependencies.delete(serviceDescriptor.id);
@@ -39,7 +39,7 @@ class ServiceController extends EventEmitter implements Identifiable {
     return this.descriptor === undefined;
   };
 
-  readonly start = async (ctx: EnvContext): Promise<ServiceDescriptor> => {
+  readonly start = async (ctx: EnvContext): Promise<ServiceDescriptor<T>> => {
     if (this.isStarted()) {
       return this.descriptor;
     }
@@ -48,11 +48,11 @@ class ServiceController extends EventEmitter implements Identifiable {
     return this.service
       .start(ctx)
       .then(meta => {
-        const descriptor: ServiceDescriptor = {
+        const descriptor: ServiceDescriptor<T> = {
           id: this.service.id,
           meta: meta
         };
-        (ctx.services as Map<ServiceId, ServiceDescriptor>).set(descriptor.id, descriptor);
+        (ctx.services as Map<ServiceId, ServiceDescriptor<T>>).set(descriptor.id, descriptor);
         this.emit('started', descriptor, ctx);
         this.descriptor = descriptor;
         return descriptor;
