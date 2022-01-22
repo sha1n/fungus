@@ -2,17 +2,16 @@ type ServiceId = string;
 
 interface EnvContext {
   readonly name: string;
-  readonly services: ReadonlyMap<ServiceId, ServiceDescriptor>;
+  readonly services: ReadonlyMap<ServiceId, ServiceDescriptor<unknown>>;
 }
 
-interface ServiceDescriptor extends Identifiable {
+interface ServiceDescriptor<T> extends Identifiable {
   readonly id: ServiceId;
-  readonly meta: unknown;
+  readonly meta: T;
 }
 
-interface Service extends Identifiable {
-  start(ctx: EnvContext): Promise<unknown>;
-
+interface Service<T> extends Identifiable {
+  start(ctx: EnvContext): Promise<T>;
   stop(ctx: EnvContext): Promise<void>;
 }
 
