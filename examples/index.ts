@@ -22,26 +22,16 @@ async function configureEnvironment(environment: Environment): Promise<Environme
 }
 
 export async function main(): Promise<void> {
-  const env = new Environment('demo-envr');
-  await configureEnvironment(env)
-    .then(env => {
-      logger.info('starting environment...');
-      return env.start();
-    })
-    .then(ctx => {
-      logger.info('environment started');
-      logger.info(
-        `environment services: ${Array.from(ctx.services.values())
-          .map(s => s.meta)
-          .join(', ')}`
-      );
-    })
-    .then(() => {
-      logger.info('stopping environment...');
-      return env.stop();
-    })
-    .then(() => {
-      logger.info('environment stopped');
-    })
-    .catch(logger.error);
+  const env = await configureEnvironment(new Environment('demo-envr'));
+
+  const ctx = await env.start();
+
+  logger.info(
+    `environment services: ${Array.from(ctx.services.values())
+      .map(s => s.meta)
+      .join(', ')}`
+  );
+
+  await env.stop();
+  logger.info('environment stopped');
 }
