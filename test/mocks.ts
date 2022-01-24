@@ -1,26 +1,16 @@
 import { v4 as uuid } from 'uuid';
-import { Service, ServiceDescriptor } from '../lib/types';
+import { Service, ServiceMetadata } from '../lib/types';
 
-function aServiceMock(
-  name: string,
-  failOnStart?: boolean,
-  failOnStop?: boolean
-): [ServiceMock, ServiceDescriptor<ServiceMetaMock>] {
-  const expectedMeta = { name: name };
+function aServiceMock(failOnStart?: boolean, failOnStop?: boolean): [ServiceMock, ServiceMetadata] {
   const expectedId = uuid();
 
-  return [new ServiceMock(expectedId, expectedMeta, failOnStart, failOnStop), { id: expectedId, meta: expectedMeta }];
+  return [new ServiceMock(expectedId, failOnStart, failOnStop), { id: expectedId }];
 }
 
-function aServiceDescriptor(name: string): ServiceDescriptor<ServiceMetaMock> {
-  const expectedMeta = { name: name };
+function aServiceMetadata(): ServiceMetadata {
   const expectedId = uuid();
 
-  return { id: expectedId, meta: expectedMeta };
-}
-
-interface ServiceMetaMock {
-  readonly name: string;
+  return { id: expectedId };
 }
 
 class StartError extends Error {
@@ -34,7 +24,7 @@ class StopError extends Error {
   }
 }
 
-class ServiceMock implements Service<ServiceMetaMock> {
+class ServiceMock implements Service {
   public static startSequence = 0;
   public static stopSequence = 0;
   public startCalls = 0;
@@ -42,20 +32,15 @@ class ServiceMock implements Service<ServiceMetaMock> {
   public startIndex = NaN;
   public stopIndex = NaN;
 
-  constructor(
-    readonly id: string,
-    readonly meta: ServiceMetaMock,
-    readonly failOnStart?: boolean,
-    readonly failOnStop?: boolean
-  ) {}
+  constructor(readonly id: string, readonly failOnStart?: boolean, readonly failOnStop?: boolean) {}
 
-  async start(): Promise<ServiceMetaMock> {
+  async start(): Promise<ServiceMetadata> {
     this.startIndex = ServiceMock.startSequence++;
     this.startCalls++;
     if (this.failOnStart === true) {
       return Promise.reject(new StartError('synthetic-start-error'));
     }
-    return Promise.resolve(this.meta);
+    return Promise.resolve({ id: this.id });
   }
 
   async stop(): Promise<void> {
@@ -68,4 +53,4 @@ class ServiceMock implements Service<ServiceMetaMock> {
   }
 }
 
-export { aServiceMock, aServiceDescriptor, ServiceMock, ServiceMetaMock, StopError, StartError };
+export { aServiceMock, aServiceMetadata, ServiceMock, StopError, StartError };

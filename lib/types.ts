@@ -1,32 +1,25 @@
 type ServiceId = string;
 
 class RuntimeContext {
-  private readonly serviceMap: Map<ServiceId, ServiceDescriptor<unknown>> = new Map();
+  private readonly serviceMap: Map<ServiceId, ServiceMetadata> = new Map();
 
   constructor(readonly name: string) {}
 
-  query<T>(id: ServiceId): void | ServiceDescriptor<T> {
-    const descriptor = this.serviceMap.get(id);
-
-    return descriptor ? (descriptor as ServiceDescriptor<T>) : undefined;
+  register(metadata: ServiceMetadata): void {
+    this.serviceMap.set(metadata.id, metadata);
   }
 
-  register<T>(descriptor: ServiceDescriptor<T>): void {
-    this.serviceMap.set(descriptor.id, descriptor);
-  }
-
-  get services(): ReadonlyMap<ServiceId, ServiceDescriptor<unknown>> {
+  get services(): ReadonlyMap<ServiceId, ServiceMetadata> {
     return this.serviceMap;
   }
 }
 
-interface ServiceDescriptor<T> extends Identifiable {
+interface ServiceMetadata extends Identifiable {
   readonly id: ServiceId;
-  readonly meta: T;
 }
 
-interface Service<T> extends Identifiable {
-  start(ctx: RuntimeContext): Promise<T>;
+interface Service extends Identifiable {
+  start(ctx: RuntimeContext): Promise<ServiceMetadata>;
   stop(ctx: RuntimeContext): Promise<void>;
 }
 
@@ -34,4 +27,4 @@ interface Identifiable {
   readonly id: string;
 }
 
-export { ServiceId, RuntimeContext, ServiceDescriptor, Service, Identifiable };
+export { ServiceId, RuntimeContext, ServiceMetadata, Service, Identifiable };

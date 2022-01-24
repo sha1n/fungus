@@ -26,11 +26,7 @@ export async function main(): Promise<void> {
 
   const ctx = await env.start();
 
-  logger.info(
-    `environment services: ${Array.from(ctx.services.values())
-      .map(s => s.meta)
-      .join(', ')}`
-  );
+  logger.info(`environment services: ${Array.from(ctx.services.values()).join(', ')}`);
 
   await env.stop();
   logger.info('environment stopped');

@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { RuntimeContext, Identifiable, Service, ServiceDescriptor } from './types';
+import { RuntimeContext, Identifiable, Service, ServiceMetadata } from './types';
 
 class Environment implements Identifiable {
   private readonly servicesGraph = new ServiceGraph();
@@ -16,7 +16,7 @@ class Environment implements Identifiable {
     this.ctx = new RuntimeContext(this.id);
   }
 
-  register(service: Service<unknown>, dependencies?: ReadonlyArray<Service<unknown>>): void {
+  register(service: Service, dependencies?: ReadonlyArray<Service>): void {
     this.logger.info(`registering service ${service.id}`);
     const serviceController = this.getOrCreateControllerFor(service);
     this.servicesGraph.addService(serviceController);
@@ -33,7 +33,7 @@ class Environment implements Identifiable {
     return this.doStop(this.ctx);
   }
 
-  private getOrCreateControllerFor(service: Service<unknown>): ServiceController<unknown> {
+  private getOrCreateControllerFor(service: Service): ServiceController {
     return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
@@ -49,10 +49,10 @@ class Environment implements Identifiable {
 
       for (const service of services) {
         service.prependOnceListener('error', onError);
-        service.prependOnceListener('started', (descriptor: ServiceDescriptor<unknown>, ctx: RuntimeContext) => {
+        service.prependOnceListener('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', onError);
-          ctx.register(descriptor);
+          ctx.register(metadata);
           if (ctx.services.size === services.length) {
             resolve(ctx);
           }
@@ -74,39 +74,39 @@ class Environment implements Identifiable {
 class ServiceGraph {
   private static readonly logger = createLogger('srv-graph');
 
-  private readonly graph: DirectedGraph<ServiceController<unknown>> = new DirectedGraph<ServiceController<unknown>>();
+  private readonly graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
 
-  addService(service: ServiceController<unknown>): void {
+  addService(service: ServiceController): void {
     this.graph.addNode(service);
   }
 
-  getService(id: string): ServiceController<unknown> {
+  getService(id: string): ServiceController {
     return this.graph.getNode(id);
   }
 
-  addDependency(service: ServiceController<unknown>, dependency: ServiceController<unknown>): void {
-    ServiceGraph.logger.info(`adding dependency: ${service.id} depends on ${dependency.id}`);
-    this.graph.addEdge(dependency, service);
+  addDependency(service: ServiceController, metadata: ServiceController): void {
+    ServiceGraph.logger.info(`adding dependency: ${service.id} depends on ${metadata.id}`);
+    this.graph.addEdge(metadata, service);
     // This is required in order to allow the controller to start once all deps are started.
-    service.addDependency(dependency);
+    service.addDependency(metadata);
 
     if (!this.graph.isDirectAcyclic()) {
-      throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
+      throw new Error(`the dependency from ${service.id} to ${metadata.id} forms a cycle.`);
     }
-    dependency.once('started', (descriptor: ServiceDescriptor<unknown>, ctx: RuntimeContext) =>
-      service.onDependencyStarted(descriptor, ctx).catch(ServiceGraph.logger.error)
+    metadata.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) =>
+      service.onDependencyStarted(metadata, ctx).catch(ServiceGraph.logger.error)
     );
   }
 
-  getServices(): Array<ServiceController<unknown>> {
+  getServices(): Array<ServiceController> {
     return this.graph.getNodes();
   }
 
-  getBootstrapServices(): Array<ServiceController<unknown>> {
+  getBootstrapServices(): Array<ServiceController> {
     return this.graph.getRoots();
   }
 
-  getShutdownSequence(): Array<ServiceController<unknown>> {
+  getShutdownSequence(): Array<ServiceController> {
     return this.graph.reverseTopologicalSort();
   }
 }

@@ -1,26 +1,26 @@
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
 import { ServiceController } from '../lib/ServiceController';
-import { RuntimeContext, ServiceDescriptor } from '../lib/types';
-import { aServiceMock, ServiceMetaMock, ServiceMock, StartError, StopError } from './mocks';
+import { RuntimeContext, ServiceMetadata } from '../lib/types';
+import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
   describe('start', () => {
-    test('should return service descriptor', async () => {
+    test('should return service metadata', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service, expectedDescriptor] = aServiceController('s1');
+      const [controller, service, expectedMetadata] = aService();
 
       expect(service.startCalls).toEqual(0);
-      await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor.meta);
+      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
       expect(service.startCalls).toEqual(1);
     });
 
-    test('should return descriptor immediately when already started', async () => {
+    test('should return metadata immediately when already started', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service, expectedDescriptor] = aServiceController('s1');
+      const [controller, service, expectedMetadata] = aService();
 
-      await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor.meta);
-      await expect(controller.start(ctx)).resolves.toEqual(expectedDescriptor.meta);
+      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
+      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
 
       expect(service.startCalls).toEqual(1);
     });
@@ -28,7 +28,7 @@ describe('ServiceController', () => {
     test('should emit "started" event when started', async () => {
       const ctx = anRuntimeContext();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [controller, _, expectedDescriptor] = aServiceController('s1');
+      const [controller, _, expectedMetadata] = aService();
       const startedPromise = new Promise(resolve => {
         controller.on('started', resolve);
       });
@@ -36,12 +36,12 @@ describe('ServiceController', () => {
       // noinspection ES6MissingAwait
       controller.start(ctx);
 
-      await expect(startedPromise).resolves.toEqual(expectedDescriptor);
+      await expect(startedPromise).resolves.toEqual(expectedMetadata);
     });
 
     test('should reject and emit an "error" event when fails to start', async () => {
       const ctx = anRuntimeContext();
-      const [controller] = aServiceController('s1', true);
+      const [controller] = aService(true);
       const errorPromise = new Promise(resolve => {
         controller.on('error', resolve);
       });
@@ -54,7 +54,7 @@ describe('ServiceController', () => {
   describe('stop', () => {
     test('should stop the service', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service] = aServiceController('s1');
+      const [controller, service] = aService();
       await controller.start(ctx);
 
       expect(service.stopCalls).toEqual(0);
@@ -64,7 +64,7 @@ describe('ServiceController', () => {
 
     test('should return immediately when already stopped', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service] = aServiceController('s1');
+      const [controller, service] = aService();
       await controller.start(ctx);
 
       await expect(controller.stop(ctx)).toResolve();
@@ -75,7 +75,7 @@ describe('ServiceController', () => {
     test('should emit "stopped" event when stopped', async () => {
       const ctx = anRuntimeContext();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [controller, _, expectedDescriptor] = aServiceController('s1');
+      const [controller, _, expectedMetadata] = aService();
       const stoppedPromise = new Promise(resolve => {
         controller.on('started', resolve);
       });
@@ -84,12 +84,12 @@ describe('ServiceController', () => {
       // noinspection ES6MissingAwait
       controller.stop(ctx);
 
-      await expect(stoppedPromise).resolves.toEqual(expectedDescriptor);
+      await expect(stoppedPromise).resolves.toEqual(expectedMetadata);
     });
 
     test('should reject and emit an "error" event when fails to start', async () => {
       const ctx = anRuntimeContext();
-      const [controller] = aServiceController('s1', false, true);
+      const [controller] = aService(false, true);
       const errorPromise = new Promise(resolve => {
         controller.on('error', resolve);
       });
@@ -106,11 +106,7 @@ function anRuntimeContext(): RuntimeContext {
   return new RuntimeContext(`env-${uuid()}`);
 }
 
-function aServiceController(
-  serviceName: string,
-  failOnStart?: boolean,
-  failOnStop?: boolean
-): [ServiceController<ServiceMetaMock>, ServiceMock, ServiceDescriptor<ServiceMetaMock>] {
-  const [service, descriptor] = aServiceMock(serviceName, failOnStart, failOnStop);
-  return [new ServiceController(service), service, descriptor];
+function aService(failOnStart?: boolean, failOnStop?: boolean): [ServiceController, ServiceMock, ServiceMetadata] {
+  const [service, metadata] = aServiceMock(failOnStart, failOnStop);
+  return [new ServiceController(service), service, metadata];
 }
