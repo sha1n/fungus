@@ -5,8 +5,8 @@ import { aServiceMock } from './mocks';
 describe('Environment', () => {
   test('should fail if a cyclic service dependency is added', () => {
     const env = new Environment();
-    const [service1] = aServiceMock('s1');
-    const [service2] = aServiceMock('s2');
+    const [service1] = aServiceMock();
+    const [service2] = aServiceMock();
 
     env.register(service1, [service2]);
     expect(() => env.register(service2, [service1])).toThrowError();
@@ -15,11 +15,11 @@ describe('Environment', () => {
   describe('start', () => {
     test('should start all registered services in the right order', async () => {
       const env = new Environment();
-      const [service1, descriptor1] = aServiceMock('s1');
-      const [service2, descriptor2] = aServiceMock('s2');
-      const [service3, descriptor3] = aServiceMock('s3');
-      const [service4, descriptor4] = aServiceMock('s4');
-      const [service5, descriptor5] = aServiceMock('s5');
+      const [service1, metadata1] = aServiceMock();
+      const [service2, metadata2] = aServiceMock();
+      const [service3, metadata3] = aServiceMock();
+      const [service4, metadata4] = aServiceMock();
+      const [service5, metadata5] = aServiceMock();
 
       env.register(service2, [service1, service3, service4]);
       env.register(service4, [service3]);
@@ -29,11 +29,11 @@ describe('Environment', () => {
 
       expect(ctx.name).toEqual(env.id);
       expect(Array.from(ctx.services.values())).toIncludeSameMembers([
-        descriptor1,
-        descriptor2,
-        descriptor3,
-        descriptor4,
-        descriptor5
+        metadata1,
+        metadata2,
+        metadata3,
+        metadata4,
+        metadata5
       ]);
 
       expect(service1.startIndex).toBeLessThan(service2.startIndex);
@@ -45,11 +45,11 @@ describe('Environment', () => {
 
     test('should stop startup when a service fails and stop any started service', async () => {
       const env = new Environment();
-      const [service1] = aServiceMock('s1');
-      const [service2] = aServiceMock('s2');
-      const [service3] = aServiceMock('s3', true);
-      const [service4] = aServiceMock('s4');
-      const [service5] = aServiceMock('s5');
+      const [service1] = aServiceMock();
+      const [service2] = aServiceMock();
+      const [service3] = aServiceMock(true);
+      const [service4] = aServiceMock();
+      const [service5] = aServiceMock();
 
       env.register(service1, [service2]);
       env.register(service2, [service3]);
@@ -75,10 +75,10 @@ describe('Environment', () => {
   describe('stop', () => {
     test('should stop all registered services in reverse order', async () => {
       const env = new Environment();
-      const [service1] = aServiceMock('s1');
-      const [service2] = aServiceMock('s2');
-      const [service3] = aServiceMock('s3');
-      const [service4] = aServiceMock('s4');
+      const [service1] = aServiceMock();
+      const [service2] = aServiceMock();
+      const [service3] = aServiceMock();
+      const [service4] = aServiceMock();
 
       env.register(service2, [service1, service3, service4]);
       env.register(service4, [service3]);
@@ -99,10 +99,10 @@ describe('Environment', () => {
 
     test('should continue to stop all registered services even when one fails', async () => {
       const env = new Environment();
-      const [service1] = aServiceMock('s1');
-      const [service2] = aServiceMock('s2', false, true);
-      const [service3] = aServiceMock('s3');
-      const [service4] = aServiceMock('s4');
+      const [service1] = aServiceMock();
+      const [service2] = aServiceMock(false, true);
+      const [service3] = aServiceMock();
+      const [service4] = aServiceMock();
 
       env.register(service4, [service3]);
       env.register(service3, [service2]);

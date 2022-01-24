@@ -1,26 +1,26 @@
 import { v4 as uuid } from 'uuid';
 import { RuntimeContext } from '../lib/types';
-import { aServiceDescriptor } from './mocks';
+import { aServiceMetadata } from './mocks';
 
 describe('RuntimeContext', () => {
-  test('register should add service descriptor mapping', () => {
+  test('register should add service metadata mapping', () => {
     const ctx = new RuntimeContext(uuid());
-    const descriptor = aServiceDescriptor(uuid());
+    const metadata = aServiceMetadata();
 
-    expect(ctx.services.get(descriptor.id)).toBeUndefined();
+    expect(ctx.services.get(metadata.id)).toBeUndefined();
 
-    ctx.register(descriptor);
+    ctx.register(metadata);
 
-    expect(ctx.services.get(descriptor.id)).toEqual(descriptor);
+    expect(ctx.services.get(metadata.id)).toEqual(metadata);
   });
 
-  test('query should return a registered descriptor', () => {
+  test('query should return a registered metadata', () => {
     const ctx = new RuntimeContext(uuid());
-    const descriptor = aServiceDescriptor(uuid());
+    const metadata = aServiceMetadata();
 
-    ctx.register(descriptor);
+    ctx.register(metadata);
 
-    expect(ctx.services.get(descriptor.id)).toEqual(descriptor);
+    expect(ctx.services.get(metadata.id)).toEqual(metadata);
   });
 
   test('query should return undefined when no matching service is registered', () => {

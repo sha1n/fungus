@@ -4,7 +4,8 @@ import { RuntimeContext, Service } from '..';
 import { createLogger, Logger } from '../lib/logger';
 import startEchoServer from './echo-server';
 
-type HttpServiceMeta = {
+type HttpServiceMetadata = {
+  id: string;
   scheme: string;
   host: string;
   port: number;
@@ -12,7 +13,7 @@ type HttpServiceMeta = {
   toString: () => string;
 };
 
-class EchoService implements Service<HttpServiceMeta> {
+class EchoService implements Service {
   private logger: Logger;
   private stopHttpServer: () => Promise<void>;
 
@@ -24,13 +25,9 @@ class EchoService implements Service<HttpServiceMeta> {
     return `service-${this.id}`;
   }
 
-  async start(ctx: RuntimeContext): Promise<HttpServiceMeta> {
+  async start(ctx: RuntimeContext): Promise<HttpServiceMetadata> {
     this.logger.info(`start called with context of env: ${ctx.name}`);
-    this.logger.info(
-      `available services: ${Array.from(ctx.services.values())
-        .map(s => s.meta)
-        .join(', ')}`
-    );
+    this.logger.info(`available services: ${Array.from(ctx.services.values()).join(', ')}`);
 
     this.logger.info(`staring ${this.toString()}...`);
     const { stop, scheme, address, port } = await startEchoServer();
@@ -42,6 +39,7 @@ class EchoService implements Service<HttpServiceMeta> {
     await retryAround(() => isAlive(url), simpleRetryPolicy(3, 1, { units: TimeUnit.Seconds }));
 
     return {
+      id: this.id,
       scheme,
       host: address,
       port: port,
