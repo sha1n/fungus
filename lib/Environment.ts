@@ -1,27 +1,19 @@
 import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
+import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from './types';
-import { Logger, createLogger } from './logger';
-
-type InternalEnvContext = {
-  readonly name: string;
-  readonly services: Map<ServiceId, ServiceDescriptor<unknown>>;
-};
+import { RuntimeContext, Identifiable, Service, ServiceDescriptor } from './types';
 
 class Environment implements Identifiable {
-  private servicesGraph = new ServiceGraph();
-  private ctx: InternalEnvContext;
-  private logger: Logger;
+  private readonly servicesGraph = new ServiceGraph();
+  private readonly ctx: RuntimeContext;
+  private readonly logger: Logger;
   readonly id: string;
 
   constructor(name?: string) {
     this.id = name || `env-${uuid()}`;
     this.logger = createLogger(this.id);
-    this.ctx = {
-      name: this.id,
-      services: new Map<ServiceId, ServiceDescriptor<unknown>>()
-    };
+    this.ctx = new RuntimeContext(this.id);
   }
 
   register(service: Service<unknown>, dependencies?: ReadonlyArray<Service<unknown>>): void {
@@ -33,7 +25,7 @@ class Environment implements Identifiable {
     });
   }
 
-  async start(): Promise<EnvContext> {
+  async start(): Promise<RuntimeContext> {
     return this.doStart(this.ctx);
   }
 
@@ -45,7 +37,7 @@ class Environment implements Identifiable {
     return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
-  private async doStart(ctx: InternalEnvContext): Promise<EnvContext> {
+  private async doStart(ctx: RuntimeContext): Promise<RuntimeContext> {
     this.logger.info('starting up...');
     return new Promise((resolve, reject) => {
       const services = this.servicesGraph.getServices();
@@ -57,10 +49,10 @@ class Environment implements Identifiable {
 
       for (const service of services) {
         service.prependOnceListener('error', onError);
-        service.prependOnceListener('started', (descriptor: ServiceDescriptor<unknown>, ctx: InternalEnvContext) => {
+        service.prependOnceListener('started', (descriptor: ServiceDescriptor<unknown>, ctx: RuntimeContext) => {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', onError);
-          ctx.services.set(descriptor.id, descriptor);
+          ctx.register(descriptor);
           if (ctx.services.size === services.length) {
             resolve(ctx);
           }
@@ -71,7 +63,7 @@ class Environment implements Identifiable {
     });
   }
 
-  private async doStop(ctx: EnvContext): Promise<void> {
+  private async doStop(ctx: RuntimeContext): Promise<void> {
     this.logger.info('stopping...');
     return Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx))).then(() => {
       return;
@@ -80,9 +72,9 @@ class Environment implements Identifiable {
 }
 
 class ServiceGraph {
-  private static logger = createLogger('srv-graph');
+  private static readonly logger = createLogger('srv-graph');
 
-  private graph: DirectedGraph<ServiceController<unknown>> = new DirectedGraph<ServiceController<unknown>>();
+  private readonly graph: DirectedGraph<ServiceController<unknown>> = new DirectedGraph<ServiceController<unknown>>();
 
   addService(service: ServiceController<unknown>): void {
     this.graph.addNode(service);
@@ -101,7 +93,7 @@ class ServiceGraph {
     if (!this.graph.isDirectAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
-    dependency.once('started', (descriptor: ServiceDescriptor<unknown>, ctx: EnvContext) =>
+    dependency.once('started', (descriptor: ServiceDescriptor<unknown>, ctx: RuntimeContext) =>
       service.onDependencyStarted(descriptor, ctx).catch(ServiceGraph.logger.error)
     );
   }

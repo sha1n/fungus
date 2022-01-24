@@ -1,10 +1,10 @@
 import EventEmitter = require('events');
 import { createLogger } from './logger';
-import { Identifiable, EnvContext, Service, ServiceDescriptor, ServiceId } from './types';
+import { RuntimeContext, Service, ServiceDescriptor, ServiceId } from './types';
 
 const logger = createLogger('srv-ctrl');
 
-class ServiceController<T> extends EventEmitter implements Identifiable {
+class ServiceController<T> extends EventEmitter implements Service<T> {
   private readonly pendingDependencies: Set<ServiceId>;
   private readonly startedDeps = new Map<ServiceId, ServiceDescriptor<T>>();
   private descriptor: ServiceDescriptor<T> = undefined;
@@ -21,7 +21,7 @@ class ServiceController<T> extends EventEmitter implements Identifiable {
     this.pendingDependencies.add(dep.id);
   }
 
-  async onDependencyStarted(serviceDescriptor: ServiceDescriptor<T>, ctx: EnvContext): Promise<void> {
+  async onDependencyStarted(serviceDescriptor: ServiceDescriptor<T>, ctx: RuntimeContext): Promise<void> {
     logger.debug(`${this.id}: dependency started -> ${serviceDescriptor.id}`);
     this.startedDeps.set(serviceDescriptor.id, serviceDescriptor);
     this.pendingDependencies.delete(serviceDescriptor.id);
@@ -35,13 +35,9 @@ class ServiceController<T> extends EventEmitter implements Identifiable {
     return this.descriptor !== undefined;
   };
 
-  readonly isStopped = (): boolean => {
-    return this.descriptor === undefined;
-  };
-
-  readonly start = async (ctx: EnvContext): Promise<ServiceDescriptor<T>> => {
+  readonly start = async (ctx: RuntimeContext): Promise<T> => {
     if (this.isStarted()) {
-      return this.descriptor;
+      return this.descriptor.meta;
     }
 
     this.starting = true;
@@ -52,10 +48,10 @@ class ServiceController<T> extends EventEmitter implements Identifiable {
           id: this.service.id,
           meta: meta
         };
-        (ctx.services as Map<ServiceId, ServiceDescriptor<T>>).set(descriptor.id, descriptor);
+        ctx.register(descriptor);
         this.emit('started', descriptor, ctx);
         this.descriptor = descriptor;
-        return descriptor;
+        return descriptor.meta;
       })
       .catch(error => {
         this.emit('error', error);
@@ -66,8 +62,8 @@ class ServiceController<T> extends EventEmitter implements Identifiable {
       });
   };
 
-  readonly stop = async (ctx: EnvContext): Promise<void> => {
-    if (this.isStopped() && !this.starting) {
+  readonly stop = async (ctx: RuntimeContext): Promise<void> => {
+    if (!this.isStarted() && !this.starting) {
       return;
     }
 
