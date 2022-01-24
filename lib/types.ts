@@ -5,12 +5,6 @@ class RuntimeContext {
 
   constructor(readonly name: string) {}
 
-  query<T>(id: ServiceId): void | ServiceDescriptor<T> {
-    const descriptor = this.serviceMap.get(id);
-
-    return descriptor ? (descriptor as ServiceDescriptor<T>) : undefined;
-  }
-
   register<T>(descriptor: ServiceDescriptor<T>): void {
     this.serviceMap.set(descriptor.id, descriptor);
   }
