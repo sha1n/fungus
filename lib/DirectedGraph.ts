@@ -1,18 +1,9 @@
 import { Identifiable } from './types';
 
 class DirectedGraph<T extends Identifiable> {
-  private static getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
-    let dependencies = refsMap.get(id);
-    if (!dependencies) {
-      dependencies = new Set<string>();
-      refsMap.set(id, dependencies);
-    }
-    return dependencies;
-  }
-
-  private readonly nodes: Map<string, T> = new Map<string, T>();
-  private readonly incomingRefs: Map<string, Set<string>> = new Map<string, Set<string>>();
-  private readonly outgoingRefs: Map<string, Set<string>> = new Map<string, Set<string>>();
+  private readonly nodes = new Map<string, T>();
+  private readonly incomingRefs = new Map<string, Set<string>>();
+  private readonly outgoingRefs = new Map<string, Set<string>>();
 
   addNode(node: T): void {
     this.nodes.set(node.id, node);
@@ -93,11 +84,11 @@ class DirectedGraph<T extends Identifiable> {
   }
 
   private getIncomingRefsOf(nodeId: string): Set<string> {
-    return DirectedGraph.getRefsOf(nodeId, this.incomingRefs);
+    return getRefsOf(nodeId, this.incomingRefs);
   }
 
   private getOutgoingRefsOf(nodeId: string): Set<string> {
-    return DirectedGraph.getRefsOf(nodeId, this.outgoingRefs);
+    return getRefsOf(nodeId, this.outgoingRefs);
   }
 
   private dfs(
@@ -134,6 +125,15 @@ class DirectedGraph<T extends Identifiable> {
       }
     }
   }
+}
+
+function getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
+  let dependencies = refsMap.get(id);
+  if (!dependencies) {
+    dependencies = new Set<string>();
+    refsMap.set(id, dependencies);
+  }
+  return dependencies;
 }
 
 export { DirectedGraph };

@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { Service, ServiceDescriptor } from '../lib/types';
 
-export function aServiceMock(
+function aServiceMock(
   name: string,
   failOnStart?: boolean,
   failOnStop?: boolean
@@ -12,22 +12,29 @@ export function aServiceMock(
   return [new ServiceMock(expectedId, expectedMeta, failOnStart, failOnStop), { id: expectedId, meta: expectedMeta }];
 }
 
-export interface ServiceMetaMock {
+function aServiceDescriptor(name: string): ServiceDescriptor<ServiceMetaMock> {
+  const expectedMeta = { name: name };
+  const expectedId = uuid();
+
+  return { id: expectedId, meta: expectedMeta };
+}
+
+interface ServiceMetaMock {
   readonly name: string;
 }
 
-export class StartError extends Error {
+class StartError extends Error {
   constructor(message?: string) {
     super(message || 'synthetic-start-error');
   }
 }
-export class StopError extends Error {
+class StopError extends Error {
   constructor(message?: string) {
     super(message || 'synthetic-stop-error');
   }
 }
 
-export class ServiceMock implements Service<ServiceMetaMock> {
+class ServiceMock implements Service<ServiceMetaMock> {
   public static startSequence = 0;
   public static stopSequence = 0;
   public startCalls = 0;
@@ -60,3 +67,5 @@ export class ServiceMock implements Service<ServiceMetaMock> {
     return Promise.resolve();
   }
 }
+
+export { aServiceMock, aServiceDescriptor, ServiceMock, ServiceMetaMock, StopError, StartError };

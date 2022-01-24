@@ -1,6 +1,6 @@
 import { retryAround, simpleRetryPolicy, TimeUnit } from '@sha1n/about-time';
 import http from 'http';
-import { EnvContext, Service } from '..';
+import { RuntimeContext, Service } from '..';
 import { createLogger, Logger } from '../lib/logger';
 import startEchoServer from './echo-server';
 
@@ -24,7 +24,7 @@ class EchoService implements Service<HttpServiceMeta> {
     return `service-${this.id}`;
   }
 
-  async start(ctx: EnvContext): Promise<HttpServiceMeta> {
+  async start(ctx: RuntimeContext): Promise<HttpServiceMeta> {
     this.logger.info(`start called with context of env: ${ctx.name}`);
     this.logger.info(
       `available services: ${Array.from(ctx.services.values())
@@ -52,7 +52,7 @@ class EchoService implements Service<HttpServiceMeta> {
     };
   }
 
-  async stop(ctx: EnvContext): Promise<void> {
+  async stop(ctx: RuntimeContext): Promise<void> {
     this.logger.info(`stop called with context of env: ${ctx.name}`);
     if (this.stopHttpServer) {
       this.logger.info(`stopping ${this.toString()}...`);
