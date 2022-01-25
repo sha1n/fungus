@@ -22,11 +22,11 @@ _______\|/__________\\;_\\//___\|/________
 An experimental library for starting and stopping multi-service environments correctly and efficiently based on declared dependencies between them.
 
 - [Fungus 🍄](#fungus-)
+  - [Example](#example)
   - [Demo](#demo)
   - [Install](#install)
 
-## Demo
-The demo code can be found [here](examples/index.ts)
+## Example
 
 ```ts
 // create services (implement the Service interface)
@@ -69,6 +69,9 @@ env.start()
     return env.stop();
   });
 ```
+
+## Demo
+The demo code can be found [here](examples/index.ts)
 
 <hr>
 <img src="docs/images/demo_800.gif" width="100%">
