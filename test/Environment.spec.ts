@@ -1,29 +1,32 @@
 import 'jest-extended';
-import { Environment } from '../lib/Environment';
+import { createEnvironment } from '../lib/Environment';
 import { aServiceMock } from './mocks';
 
 describe('Environment', () => {
   test('should fail if a cyclic service dependency is added', () => {
-    const env = new Environment();
     const [service1] = aServiceMock();
     const [service2] = aServiceMock();
 
-    env.register(service1, [service2]);
+    const env = createEnvironment({
+      1: { service: service1, dependencies: [service2] }
+    });
+
     expect(() => env.register(service2, [service1])).toThrowError();
   });
 
   describe('start', () => {
     test('should start all registered services in the right order', async () => {
-      const env = new Environment();
       const [service1, metadata1] = aServiceMock();
       const [service2, metadata2] = aServiceMock();
       const [service3, metadata3] = aServiceMock();
       const [service4, metadata4] = aServiceMock();
       const [service5, metadata5] = aServiceMock();
 
-      env.register(service2, [service1, service3, service4]);
-      env.register(service4, [service3]);
-      env.register(service5);
+      const env = createEnvironment({
+        2: { service: service2, dependencies: [service1, service3, service4] },
+        4: { service: service4, dependencies: [service3] },
+        5: { service: service5 }
+      });
 
       const ctx = await env.start();
 
@@ -44,17 +47,18 @@ describe('Environment', () => {
     });
 
     test('should stop startup when a service fails and stop any started service', async () => {
-      const env = new Environment();
       const [service1] = aServiceMock();
       const [service2] = aServiceMock();
       const [service3] = aServiceMock(true);
       const [service4] = aServiceMock();
       const [service5] = aServiceMock();
 
-      env.register(service1, [service2]);
-      env.register(service2, [service3]);
-      env.register(service3, [service4]);
-      env.register(service4, [service5]);
+      const env = createEnvironment({
+        1: { service: service1, dependencies: [service2] },
+        2: { service: service2, dependencies: [service3] },
+        3: { service: service3, dependencies: [service4] },
+        4: { service: service4, dependencies: [service5] }
+      });
 
       await expect(env.start()).toReject();
 
@@ -74,14 +78,15 @@ describe('Environment', () => {
 
   describe('stop', () => {
     test('should stop all registered services in reverse order', async () => {
-      const env = new Environment();
       const [service1] = aServiceMock();
       const [service2] = aServiceMock();
       const [service3] = aServiceMock();
       const [service4] = aServiceMock();
 
-      env.register(service2, [service1, service3, service4]);
-      env.register(service4, [service3]);
+      const env = createEnvironment({
+        2: { service: service2, dependencies: [service1, service3, service4] },
+        4: { service: service4, dependencies: [service3] }
+      });
 
       await env.start();
       await env.stop();
@@ -98,15 +103,16 @@ describe('Environment', () => {
     });
 
     test('should continue to stop all registered services even when one fails', async () => {
-      const env = new Environment();
       const [service1] = aServiceMock();
       const [service2] = aServiceMock(false, true);
       const [service3] = aServiceMock();
       const [service4] = aServiceMock();
 
-      env.register(service4, [service3]);
-      env.register(service3, [service2]);
-      env.register(service2, [service1]);
+      const env = createEnvironment({
+        4: { service: service4, dependencies: [service3] },
+        3: { service: service3, dependencies: [service2] },
+        2: { service: service2, dependencies: [service1] }
+      });
 
       await env.start();
       await expect(env.stop()).toResolve();

@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { RuntimeContext, Identifiable, Service, ServiceMetadata } from './types';
+import { RuntimeContext, Identifiable, Service, ServiceMetadata, DependencyMap } from './types';
 
 class Environment implements Identifiable {
   private readonly servicesGraph = new ServiceGraph();
@@ -111,4 +111,15 @@ class ServiceGraph {
   }
 }
 
-export { Environment };
+function createEnvironment(map: DependencyMap, name?: string): Environment {
+  const env = new Environment(name);
+
+  for (const key of Object.keys(map)) {
+    const record = map[key];
+    env.register(record.service, record.dependencies);
+  }
+
+  return env;
+}
+
+export { type Environment, createEnvironment };
