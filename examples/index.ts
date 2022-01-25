@@ -1,10 +1,10 @@
-import { Environment } from '..';
+import { Environment, createEnvironment } from '..';
 import { createLogger } from '../lib/logger';
 import { EchoService } from './EchoService';
 
 const logger = createLogger('demo-flow');
 
-async function configureEnvironment(environment: Environment): Promise<Environment> {
+async function configureEnvironment(): Promise<Environment> {
   logger.info('configuring environment services...');
 
   const serviceA = new EchoService('A');
@@ -13,16 +13,30 @@ async function configureEnvironment(environment: Environment): Promise<Environme
   const serviceD = new EchoService('D');
   const serviceE = new EchoService('E');
 
-  environment.register(serviceC, [serviceA, serviceB]);
-  environment.register(serviceE, [serviceC, serviceD]);
-  environment.register(serviceD, [serviceC]);
-  environment.register(serviceC);
-
-  return environment;
+  return createEnvironment(
+    {
+      A: {
+        service: serviceC,
+        dependencies: [serviceA, serviceB]
+      },
+      E: {
+        service: serviceE,
+        dependencies: [serviceC, serviceD]
+      },
+      D: {
+        service: serviceD,
+        dependencies: [serviceC]
+      },
+      C: {
+        service: serviceC
+      }
+    },
+    'demo-envr'
+  );
 }
 
 export async function main(): Promise<void> {
-  const env = await configureEnvironment(new Environment('demo-envr'));
+  const env = await configureEnvironment();
 
   const ctx = await env.start();
 

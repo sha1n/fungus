@@ -27,4 +27,10 @@ interface Identifiable {
   readonly id: string;
 }
 
-export { ServiceId, RuntimeContext, ServiceMetadata, Service, Identifiable };
+type DependencyRecord = { service: Service; dependencies?: Service[] };
+
+type DependencyMap = {
+  [key: ServiceId]: DependencyRecord;
+};
+
+export { ServiceId, RuntimeContext, ServiceMetadata, Service, Identifiable, DependencyMap, DependencyRecord };
