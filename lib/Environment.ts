@@ -116,7 +116,7 @@ function createEnvironment(map: DependencyMap, name?: string): Environment {
 
   for (const key of Object.keys(map)) {
     const record = map[key];
-    env.register(record.service, record.dependencies);
+    env.register(record.service, record.dependsOn);
   }
 
   return env;

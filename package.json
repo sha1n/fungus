@@ -1,6 +1,6 @@
 {
   "name": "@sha1n/fungus",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A dependency based service graph controller library",
   "repository": "https://github.com/sha1n/fungus",
   "author": "Shai Nagar",
@@ -21,7 +21,7 @@
     "prebuild": "yarn run clean",
     "build": "tsc",
     "test": "jest --coverage",
-    "demo": "DEMO=1 DEBUG=* yarn run ts-node -e \"import { main } from './examples'; main();\"",
+    "demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",
     "prepublish": "yarn run build"

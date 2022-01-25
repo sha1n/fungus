@@ -27,7 +27,7 @@ interface Identifiable {
   readonly id: string;
 }
 
-type DependencyRecord = { service: Service; dependencies?: Service[] };
+type DependencyRecord = { service: Service; dependsOn?: Service[] };
 
 type DependencyMap = {
   [key: ServiceId]: DependencyRecord;
