@@ -8,7 +8,7 @@ describe('Environment', () => {
     const [service2] = aServiceMock();
 
     const env = createEnvironment({
-      1: { service: service1, dependencies: [service2] }
+      1: { service: service1, dependsOn: [service2] }
     });
 
     expect(() => env.register(service2, [service1])).toThrowError();
@@ -23,8 +23,8 @@ describe('Environment', () => {
       const [service5, metadata5] = aServiceMock();
 
       const env = createEnvironment({
-        2: { service: service2, dependencies: [service1, service3, service4] },
-        4: { service: service4, dependencies: [service3] },
+        2: { service: service2, dependsOn: [service1, service3, service4] },
+        4: { service: service4, dependsOn: [service3] },
         5: { service: service5 }
       });
 
@@ -54,10 +54,10 @@ describe('Environment', () => {
       const [service5] = aServiceMock();
 
       const env = createEnvironment({
-        1: { service: service1, dependencies: [service2] },
-        2: { service: service2, dependencies: [service3] },
-        3: { service: service3, dependencies: [service4] },
-        4: { service: service4, dependencies: [service5] }
+        1: { service: service1, dependsOn: [service2] },
+        2: { service: service2, dependsOn: [service3] },
+        3: { service: service3, dependsOn: [service4] },
+        4: { service: service4, dependsOn: [service5] }
       });
 
       await expect(env.start()).toReject();
@@ -84,8 +84,8 @@ describe('Environment', () => {
       const [service4] = aServiceMock();
 
       const env = createEnvironment({
-        2: { service: service2, dependencies: [service1, service3, service4] },
-        4: { service: service4, dependencies: [service3] }
+        2: { service: service2, dependsOn: [service1, service3, service4] },
+        4: { service: service4, dependsOn: [service3] }
       });
 
       await env.start();
@@ -109,9 +109,9 @@ describe('Environment', () => {
       const [service4] = aServiceMock();
 
       const env = createEnvironment({
-        4: { service: service4, dependencies: [service3] },
-        3: { service: service3, dependencies: [service2] },
-        2: { service: service2, dependencies: [service1] }
+        4: { service: service4, dependsOn: [service3] },
+        3: { service: service3, dependsOn: [service2] },
+        2: { service: service2, dependsOn: [service1] }
       });
 
       await env.start();

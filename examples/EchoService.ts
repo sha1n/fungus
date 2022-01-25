@@ -18,18 +18,14 @@ class EchoService implements Service {
   private stopHttpServer: () => Promise<void>;
 
   constructor(readonly id: string) {
-    this.logger = createLogger(this.toString());
-  }
-
-  toString(): string {
-    return `service-${this.id}`;
+    this.logger = createLogger(`echo-${this.id}`);
   }
 
   async start(ctx: RuntimeContext): Promise<HttpServiceMetadata> {
     this.logger.info(`start called with context of env: ${ctx.name}`);
     this.logger.info(`available services: ${Array.from(ctx.services.values()).join(', ')}`);
 
-    this.logger.info(`staring ${this.toString()}...`);
+    this.logger.info(`staring ${this.id}...`);
     const { stop, scheme, address, port } = await startEchoServer();
 
     this.stopHttpServer = stop;
@@ -53,7 +49,7 @@ class EchoService implements Service {
   async stop(ctx: RuntimeContext): Promise<void> {
     this.logger.info(`stop called with context of env: ${ctx.name}`);
     if (this.stopHttpServer) {
-      this.logger.info(`stopping ${this.toString()}...`);
+      this.logger.info(`stopping ${this.id}...`);
       await this.stopHttpServer();
     }
   }

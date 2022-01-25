@@ -2,36 +2,33 @@ import { Environment, createEnvironment } from '..';
 import { createLogger } from '../lib/logger';
 import { EchoService } from './EchoService';
 
-const logger = createLogger('demo-flow');
+const logger = createLogger('main');
 
 async function configureEnvironment(): Promise<Environment> {
   logger.info('configuring environment services...');
 
-  const serviceA = new EchoService('A');
-  const serviceB = new EchoService('B');
-  const serviceC = new EchoService('C');
-  const serviceD = new EchoService('D');
-  const serviceE = new EchoService('E');
+  const storageService = new EchoService('storage-srv');
+  const mqService = new EchoService('mq-service');
+  const configService = new EchoService('config-srv');
+  const authService = new EchoService('auth-srv');
+  const appService = new EchoService('app-srv');
 
   return createEnvironment(
     {
-      A: {
-        service: serviceC,
-        dependencies: [serviceA, serviceB]
+      ConfigService: {
+        service: configService,
+        dependsOn: [storageService, mqService]
       },
-      E: {
-        service: serviceE,
-        dependencies: [serviceC, serviceD]
+      App: {
+        service: appService,
+        dependsOn: [configService, authService]
       },
-      D: {
-        service: serviceD,
-        dependencies: [serviceC]
-      },
-      C: {
-        service: serviceC
+      AuthService: {
+        service: authService,
+        dependsOn: [configService]
       }
     },
-    'demo-envr'
+    'demo-env'
   );
 }
 
@@ -45,3 +42,6 @@ export async function main(): Promise<void> {
   await env.stop();
   logger.info('environment stopped');
 }
+
+// eslint-disable-next-line no-floating-promise/no-floating-promise
+main();

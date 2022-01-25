@@ -21,7 +21,7 @@
     "prebuild": "yarn run clean",
     "build": "tsc",
     "test": "jest --coverage",
-    "demo": "DEMO=1 DEBUG=* yarn run ts-node -e \"import { main } from './examples'; main();\"",
+    "demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",
     "prepublish": "yarn run build"
