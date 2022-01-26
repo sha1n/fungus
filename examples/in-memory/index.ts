@@ -1,10 +1,9 @@
-import { Environment, createEnvironment } from '..';
-import { createLogger } from '../lib/logger';
-import { EchoService } from './EchoService';
+import { createEnvironment, Environment } from '../..';
+import { Logger } from '../../lib/logger';
+import { EchoService } from '../EchoService';
+import run from '../runner';
 
-const logger = createLogger('main');
-
-async function configureEnvironment(): Promise<Environment> {
+function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
 
   const storageService = new EchoService('storage-srv');
@@ -32,16 +31,4 @@ async function configureEnvironment(): Promise<Environment> {
   );
 }
 
-export async function main(): Promise<void> {
-  const env = await configureEnvironment();
-
-  const ctx = await env.start();
-
-  logger.info(`environment services: ${Array.from(ctx.services.values()).join(', ')}`);
-
-  await env.stop();
-  logger.info('environment stopped');
-}
-
-// eslint-disable-next-line no-floating-promise/no-floating-promise
-main();
+run(configureEnvironment);
