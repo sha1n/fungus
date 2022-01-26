@@ -1,4 +1,4 @@
-import { createEnvironment, Environment } from '../..';
+import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
 import { EchoService } from '../EchoService';
 import run from '../runner';
@@ -38,6 +38,9 @@ function configureEnvironment(logger: Logger): Environment {
       App: {
         service: appService,
         dependsOn: [mysqlService, nginxService]
+      },
+      App2: {
+        service: new EchoService('app2-srv')
       }
     },
     'demo-env'

@@ -25,11 +25,11 @@ class Environment implements Identifiable {
     });
   }
 
-  async start(): Promise<RuntimeContext> {
+  start(): Promise<RuntimeContext> {
     return this.doStart(this.ctx);
   }
 
-  async stop(): Promise<void> {
+  stop(): Promise<void> {
     return this.doStop(this.ctx);
   }
 
@@ -39,40 +39,40 @@ class Environment implements Identifiable {
 
   private async doStart(ctx: RuntimeContext): Promise<RuntimeContext> {
     this.logger.info('starting up...');
-    return new Promise((resolve, reject) => {
+    const allStartedPromise = new Promise<RuntimeContext>((resolve, reject) => {
       const services = this.servicesGraph.getServices();
-      const onError = (e: Error) => {
-        this.doStop(ctx)
-          .catch(this.logger.error)
-          .finally(() => reject(e));
-      };
 
       for (const service of services) {
-        service.prependOnceListener('error', onError);
+        service.prependOnceListener('error', reject);
         service.prependOnceListener('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
           // This is critical to avoid handling errors that occur after startup
-          service.removeListener('error', onError);
+          service.removeListener('error', reject);
           ctx.register(metadata);
           if (ctx.services.size === services.length) {
             resolve(ctx);
           }
         });
       }
-
-      Promise.all(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx).catch(this.logger.error)));
     });
+
+    await Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
+
+    try {
+      return await allStartedPromise;
+    } catch (e) {
+      await this.stop();
+      return Promise.reject(e);
+    }
   }
 
   private async doStop(ctx: RuntimeContext): Promise<void> {
     this.logger.info('stopping...');
-    return Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx))).then(() => {
-      return;
-    });
+    await Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx)));
   }
 }
 
 class ServiceGraph {
-  private static readonly logger = createLogger('srv-graph');
+  private readonly logger = createLogger('srv-graph');
 
   private readonly graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
 
@@ -85,7 +85,7 @@ class ServiceGraph {
   }
 
   addDependency(service: ServiceController, metadata: ServiceController): void {
-    ServiceGraph.logger.info(`adding dependency: ${service.id} depends on ${metadata.id}`);
+    this.logger.info(`adding dependency: ${service.id} depends on ${metadata.id}`);
     this.graph.addEdge(metadata, service);
     // This is required in order to allow the controller to start once all deps are started.
     service.addDependency(metadata);
@@ -93,9 +93,9 @@ class ServiceGraph {
     if (!this.graph.isDirectAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${metadata.id} forms a cycle.`);
     }
-    metadata.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) =>
-      service.onDependencyStarted(metadata, ctx).catch(ServiceGraph.logger.error)
-    );
+    metadata.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
+      service.onDependencyStarted(metadata, ctx).catch(this.logger.error);
+    });
   }
 
   getServices(): Array<ServiceController> {
