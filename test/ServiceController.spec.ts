@@ -46,7 +46,7 @@ describe('ServiceController', () => {
         controller.on('error', resolve);
       });
 
-      await expect(controller.start(ctx)).toReject();
+      await expect(controller.start(ctx)).rejects.toThrow(new StartError());
       await expect(errorPromise).resolves.toEqual(new StartError());
     });
   });

@@ -1,4 +1,4 @@
-import { createEnvironment, Environment } from '../..';
+import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
 import { EchoService } from '../EchoService';
 import run from '../runner';

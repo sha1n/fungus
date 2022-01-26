@@ -32,7 +32,7 @@ class EchoService implements Service {
     const url = `${scheme}://${address}:${port}`;
 
     this.logger.info(`checking whether '${url}' is alive`);
-    await retryAround(() => isAlive(url), simpleRetryPolicy(3, 1, { units: TimeUnit.Seconds }));
+    await retryAround(() => this.isAlive(url), simpleRetryPolicy(3, 1, { units: TimeUnit.Seconds }));
 
     return {
       id: this.id,
@@ -53,18 +53,21 @@ class EchoService implements Service {
       await this.stopHttpServer();
     }
   }
-}
 
-async function isAlive(url: string): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    http.get(url, res => {
-      if (!res.statusCode && res.statusCode !== 200) {
-        reject(new Error(`Server returned status ${res.statusCode}`));
-      }
+  async isAlive(url: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const request = http.get(url, res => {
+        if (!res.statusCode && res.statusCode !== 200) {
+          reject(new Error(`Server returned status ${res.statusCode}`));
+        }
+        resolve(true);
+      });
 
-      resolve(true);
+      request.setTimeout(100, () => {
+        reject(new Error('Timeout'));
+      });
     });
-  });
+  }
 }
 
 export { EchoService };
