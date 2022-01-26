@@ -21,7 +21,8 @@
     "prebuild": "yarn run clean",
     "build": "tsc",
     "test": "jest --coverage",
-    "demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples",
+    "docker-demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples/docker",
+    "simple-demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples/in-memory",
     "lint": "eslint --fix --ext .js,.ts .",
     "posttest": "yarn run lint",
     "prepublish": "yarn run build"
