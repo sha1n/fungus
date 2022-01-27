@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { RuntimeContext, Identifiable, Service, ServiceMetadata, DependencyMap } from './types';
+import { DependencyMap, Identifiable, RuntimeContext, Service, ServiceMetadata } from './types';
 
 class Environment implements Identifiable {
   private readonly servicesGraph = new ServiceGraph();
@@ -53,15 +53,18 @@ class Environment implements Identifiable {
           }
         });
       }
+
+      Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
     });
 
-    await Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
-
     try {
-      return await allStartedPromise;
+      // await Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
+
+      const result = await allStartedPromise;
+      return result;
     } catch (e) {
-      await this.stop();
-      return Promise.reject(e);
+      await this.stop().catch(this.logger.error);
+      throw e;
     }
   }
 
@@ -84,16 +87,17 @@ class ServiceGraph {
     return this.graph.getNode(id);
   }
 
-  addDependency(service: ServiceController, metadata: ServiceController): void {
-    this.logger.info(`adding dependency: ${service.id} depends on ${metadata.id}`);
-    this.graph.addEdge(metadata, service);
+  addDependency(service: ServiceController, controller: ServiceController): void {
+    this.logger.info(`adding dependency: ${service.id} depends on ${controller.id}`);
+    this.graph.addEdge(controller, service);
     // This is required in order to allow the controller to start once all deps are started.
-    service.addDependency(metadata);
+    service.addDependency(controller);
 
     if (!this.graph.isDirectAcyclic()) {
-      throw new Error(`the dependency from ${service.id} to ${metadata.id} forms a cycle.`);
+      throw new Error(`the dependency from ${service.id} to ${controller.id} forms a cycle.`);
     }
-    metadata.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
+    controller.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
+      // An event emitter should trigger a promise rejection up the stack
       service.onDependencyStarted(metadata, ctx).catch(this.logger.error);
     });
   }

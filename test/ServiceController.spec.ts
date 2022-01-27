@@ -6,21 +6,21 @@ import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
   describe('start', () => {
-    test('should return service metadata', async () => {
+    test('should resolve and start the service', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service, expectedMetadata] = aService();
+      const [controller, service] = aService();
 
       expect(service.startCalls).toEqual(0);
-      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
+      await expect(controller.start(ctx)).toResolve();
       expect(service.startCalls).toEqual(1);
     });
 
     test('should return metadata immediately when already started', async () => {
       const ctx = anRuntimeContext();
-      const [controller, service, expectedMetadata] = aService();
+      const [controller, service] = aService();
 
-      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
-      await expect(controller.start(ctx)).resolves.toEqual(expectedMetadata);
+      await expect(controller.start(ctx)).toResolve();
+      await expect(controller.start(ctx)).toResolve();
 
       expect(service.startCalls).toEqual(1);
     });
