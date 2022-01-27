@@ -28,11 +28,11 @@ An experimental library for starting and stopping multi-service environments cor
 
 ## Install
 ```
-yarn install
+yarn add @sha1n/fungus
 ```
 or 
 ```
-npm i
+npm i @sha1n/fungus
 ```
 
 ## Example
