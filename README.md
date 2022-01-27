@@ -22,9 +22,18 @@ _______\|/__________\\;_\\//___\|/________
 An experimental library for starting and stopping multi-service environments correctly and efficiently based on declared dependencies between them.
 
 - [Fungus 🍄](#fungus-)
+  - [Install](#install)
   - [Example](#example)
   - [Demo](#demo)
-  - [Install](#install)
+
+## Install
+```
+yarn install
+```
+or 
+```
+npm i
+```
 
 ## Example
 
@@ -71,16 +80,18 @@ env.start()
 ```
 
 ## Demo
-The demo code can be found [here](examples/index.ts)
+- The dockerised services demo code can be found [here](examples/docker/index.ts). 
+  
+```
+yarn run docker-demo
+```
+
+
+- The in-memory services demo code can be found [here](examples/in-memory/index.ts).
+
+```
+yarn run simple-demo
+```
 
 <hr>
 <img src="docs/images/demo_800.gif" width="100%">
-
-## Install
-```
-yarn install && yarn run demo
-```
-or 
-```
-npm i && npm run demo
-```

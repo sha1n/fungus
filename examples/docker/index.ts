@@ -31,12 +31,11 @@ function configureEnvironment(logger: Logger): Environment {
       '80': '80'
     }
   });
-  const appService = new EchoService('app-srv');
 
   return createEnvironment(
     {
       App: {
-        service: appService,
+        service: new EchoService('app1-srv'),
         dependsOn: [mysqlService, nginxService]
       },
       App2: {

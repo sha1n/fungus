@@ -23,7 +23,7 @@ type ServerHandle = {
 };
 
 export default function start(): Promise<ServerHandle> {
-  logger.info('Starting HTTP server...');
+  logger.info('starting HTTP server...');
 
   return new Promise<ServerHandle>(resolve => {
     const server = http
