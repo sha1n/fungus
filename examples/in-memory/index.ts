@@ -1,16 +1,16 @@
 import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
-import { EchoService } from '../EchoService';
-import run from '../runner';
+import createEchoService from '../EchoService';
+import run from '../run';
 
 function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
 
-  const storageService = new EchoService('storage-srv');
-  const mqService = new EchoService('mq-service');
-  const configService = new EchoService('config-srv');
-  const authService = new EchoService('auth-srv');
-  const appService = new EchoService('app-srv');
+  const storageService = createEchoService('storage-srv');
+  const mqService = createEchoService('mq-service');
+  const configService = createEchoService('config-srv');
+  const authService = createEchoService('auth-srv');
+  const appService = createEchoService('app-srv');
 
   return createEnvironment(
     {

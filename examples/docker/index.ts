@@ -1,7 +1,7 @@
 import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
-import { EchoService } from '../EchoService';
-import run from '../runner';
+import createEchoService from '../EchoService';
+import run from '../run';
 import createDockerizedService from './dockerized';
 
 function configureEnvironment(logger: Logger): Environment {
@@ -31,16 +31,15 @@ function configureEnvironment(logger: Logger): Environment {
       '80': '80'
     }
   });
-  const appService = new EchoService('app-srv');
 
   return createEnvironment(
     {
       App: {
-        service: appService,
+        service: createEchoService('app1-srv'),
         dependsOn: [mysqlService, nginxService]
       },
       App2: {
-        service: new EchoService('app2-srv')
+        service: createEchoService('app2-srv')
       }
     },
     'demo-env'

@@ -2,7 +2,7 @@ import { retryAround, simpleRetryPolicy, TimeUnit } from '@sha1n/about-time';
 import http from 'http';
 import { RuntimeContext, Service } from '..';
 import { createLogger, Logger } from '../lib/logger';
-import startEchoServer from './echo-server';
+import startEchoServer from './echoServer';
 
 type HttpServiceMetadata = {
   id: string;
@@ -70,4 +70,9 @@ class EchoService implements Service {
   }
 }
 
-export { EchoService };
+function createEchoService(id: string): Service {
+  return new EchoService(id);
+}
+
+export { createEchoService, HttpServiceMetadata };
+export default createEchoService;

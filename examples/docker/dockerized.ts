@@ -89,7 +89,7 @@ function interpret(name: string, opts: DockerOptions): string {
 }
 
 async function executeCommand(cmd: string): Promise<number> {
-  logger.debug('Running: %s', cmd);
+  logger.debug('running: %s', cmd);
   return new Promise<number>((resolve, reject) => {
     const p = child_process.spawn(cmd, { stdio: 'inherit', shell: true });
     const onExit = (code: number) => {

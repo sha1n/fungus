@@ -24,18 +24,14 @@ class ServiceController extends EventEmitter {
   }
 
   async onDependencyStarted(metadata: ServiceMetadata, ctx: RuntimeContext): Promise<void> {
-    logger.debug(`${this.id}: dependency started -> ${metadata.id}`);
+    logger.debug('%s: dependency started -> %s', this.id, metadata.id);
     this.startedDeps.set(metadata.id, metadata);
     this.pendingDependencies.delete(metadata.id);
     if (this.pendingDependencies.size === 0 && !(this.isStarted() || this.starting)) {
-      logger.debug(`${this.id}: all dependencies are started`);
+      logger.debug('%s: all dependencies are started', this.id);
       await this.start(ctx);
     }
   }
-
-  readonly isStarted = (): boolean => {
-    return this.meta !== undefined;
-  };
 
   readonly start = async (ctx: RuntimeContext): Promise<void> => {
     if (this.isStarted() || this.startPromise) {
@@ -61,14 +57,18 @@ class ServiceController extends EventEmitter {
   }
 
   readonly stop = async (ctx: RuntimeContext): Promise<void> => {
+    logger.debug('%s: going to shutdown...', this.id);
     if (!this.isStarted() && !this.startPromise) {
       return;
     }
 
     try {
       if (this.startPromise) {
+        logger.debug('%s: waiting for startup to finish...', this.id);
         await this.startPromise;
       }
+
+      logger.debug('%s: stopping...', this.id);
       await this.service.stop(ctx);
       this.emit('stopped', this.service.id);
       this.meta = undefined;
@@ -79,6 +79,10 @@ class ServiceController extends EventEmitter {
       this.startPromise = undefined;
     }
   };
+
+  private isStarted(): boolean {
+    return this.meta !== undefined;
+  }
 }
 
 export { ServiceController };

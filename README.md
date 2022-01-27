@@ -22,15 +22,24 @@ _______\|/__________\\;_\\//___\|/________
 An experimental library for starting and stopping multi-service environments correctly and efficiently based on declared dependencies between them.
 
 - [Fungus 🍄](#fungus-)
+  - [Install](#install)
   - [Example](#example)
   - [Demo](#demo)
-  - [Install](#install)
+
+## Install
+```
+yarn install
+```
+or 
+```
+npm i
+```
 
 ## Example
 
 ```ts
 // create services (implement the Service interface)
-const storageService = new ConfigService('my-config-service-id');
+const storageService = createConfigService('my-config-service-id');
 const mqService = ...;
 const configService = ...;
 const authService = ...;
@@ -56,31 +65,29 @@ const env = createEnvironment(
 );
 
 // start all the services in order (topological)
-env.start()
-  .then(ctx => {
-    // do whatever you need to do here...
-
-    const configServiceUrl = ctx.services.get('my-config-service-id').url;
+const runtimeContext = await env.start();
+const configServiceUrl = runtimeContext.services.get('my-config-service-id').url;
     
-    ...
-  })
-  .finally(() => {
-    // stop all service in reverse order
-    return env.stop();
-  });
+  ...
+
+// finally - stop all service in reverse order
+await env.stop();
+
 ```
 
 ## Demo
-The demo code can be found [here](examples/index.ts)
+- The dockerised services demo code can be found [here](examples/docker/index.ts). 
+  
+```
+yarn run docker-demo
+```
+
+
+- The in-memory services demo code can be found [here](examples/in-memory/index.ts).
+
+```
+yarn run simple-demo
+```
 
 <hr>
 <img src="docs/images/demo_800.gif" width="100%">
-
-## Install
-```
-yarn install && yarn run demo
-```
-or 
-```
-npm i && npm run demo
-```
