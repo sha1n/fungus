@@ -1,7 +1,8 @@
+import { sleep, TimeUnit } from '@sha1n/about-time';
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
 import { ServiceController } from '../lib/ServiceController';
-import { RuntimeContext, ServiceMetadata } from '../lib/types';
+import { RuntimeContext, Service, ServiceMetadata } from '../lib/types';
 import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
 
 describe('ServiceController', () => {
@@ -99,6 +100,17 @@ describe('ServiceController', () => {
       await expect(controller.stop(ctx)).rejects.toThrow(new StopError());
       await expect(errorPromise).resolves.toEqual(new StopError());
     });
+
+    test('should wait for startup to finish', async () => {
+      const ctx = anRuntimeContext();
+      const service = aSlowStartingService(0.5, TimeUnit.Second);
+      const controller = new ServiceController(service);
+
+      controller.start(ctx);
+
+      await expect(controller.stop(ctx)).toResolve();
+      expect(service.finishedStartup).toBeTrue();
+    });
   });
 });
 
@@ -109,4 +121,26 @@ function anRuntimeContext(): RuntimeContext {
 function aService(failOnStart?: boolean, failOnStop?: boolean): [ServiceController, ServiceMock, ServiceMetadata] {
   const [service, metadata] = aServiceMock(failOnStart, failOnStop);
   return [new ServiceController(service), service, metadata];
+}
+
+function aSlowStartingService(time: number, units: TimeUnit): Service & { finishedStartup: boolean } {
+  const id = uuid();
+  const finishedStartup = false;
+
+  const service = {
+    start: async () => {
+      await sleep(time, units);
+      service.finishedStartup = true;
+      return {
+        id
+      };
+    },
+    stop: () => {
+      return Promise.resolve();
+    },
+    id,
+    finishedStartup
+  };
+
+  return service;
 }
