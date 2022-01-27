@@ -61,7 +61,7 @@ class ServiceController extends EventEmitter {
   }
 
   readonly stop = async (ctx: RuntimeContext): Promise<void> => {
-    if (!this.isStarted()) {
+    if (!this.isStarted() && !this.startPromise) {
       return;
     }
 
@@ -75,6 +75,8 @@ class ServiceController extends EventEmitter {
     } catch (e) {
       this.emit('error', e);
       throw e;
+    } finally {
+      this.startPromise = undefined;
     }
   };
 }
