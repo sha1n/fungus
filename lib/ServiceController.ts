@@ -1,15 +1,17 @@
+import assert = require('assert');
 import EventEmitter = require('events');
 import { createLogger } from './logger';
-import { RuntimeContext, Service, ServiceMetadata, ServiceId } from './types';
+import { RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
 
 const logger = createLogger('srv-ctrl');
 
-class ServiceController extends EventEmitter implements Service {
+class ServiceController extends EventEmitter {
   private readonly pendingDependencies: Set<ServiceId>;
   private readonly startedDeps = new Map<ServiceId, ServiceMetadata>();
   private meta: ServiceMetadata = undefined;
   private starting = false;
   readonly id: string;
+  private startPromise: Promise<void>;
 
   constructor(readonly service: Service, ...deps: ReadonlyArray<ServiceId>) {
     super();
@@ -17,7 +19,7 @@ class ServiceController extends EventEmitter implements Service {
     this.id = service.id;
   }
 
-  addDependency(dep: Service): void {
+  addDependency(dep: ServiceController): void {
     this.pendingDependencies.add(dep.id);
   }
 
@@ -35,45 +37,45 @@ class ServiceController extends EventEmitter implements Service {
     return this.meta !== undefined;
   };
 
-  readonly start = async (ctx: RuntimeContext): Promise<ServiceMetadata> => {
-    if (this.isStarted()) {
-      return this.meta;
-    }
-
-    this.starting = true;
-    return this.service
-      .start(ctx)
-      .then(meta => {
-        ctx.register(meta);
-        this.emit('started', meta, ctx);
-        this.meta = meta;
-        return meta;
-      })
-      .catch(error => {
-        this.emit('error', error);
-        return Promise.reject(error);
-      })
-      .finally(() => {
-        this.starting = false;
-      });
-  };
-
-  readonly stop = async (ctx: RuntimeContext): Promise<void> => {
-    if (!this.isStarted() && !this.starting) {
+  readonly start = async (ctx: RuntimeContext): Promise<void> => {
+    if (this.isStarted() || this.startPromise) {
       return;
     }
 
-    return this.service.stop(ctx).then(
-      () => {
-        this.emit('stopped', this.service.id);
-        this.meta = undefined;
-        return;
-      },
-      error => {
-        this.emit('error', error);
-        return Promise.reject(error);
+    this.startPromise = this.doStart(ctx);
+
+    return this.startPromise;
+  };
+
+  private async doStart(ctx: RuntimeContext): Promise<void> {
+    try {
+      this.meta = await this.service.start(ctx);
+      ctx.register(this.meta);
+      this.emit('started', this.meta, ctx);
+    } catch (e) {
+      const hasListeners = this.emit('error', e);
+
+      assert(hasListeners, 'A service controller is expected to have a listener at this point');
+      throw e;
+    }
+  }
+
+  readonly stop = async (ctx: RuntimeContext): Promise<void> => {
+    if (!this.isStarted()) {
+      return;
+    }
+
+    try {
+      if (this.startPromise) {
+        await this.startPromise;
       }
-    );
+      await this.service.stop(ctx);
+      this.emit('stopped', this.service.id);
+      this.meta = undefined;
+    } catch (e) {
+      this.emit('error', e);
+      throw e;
+    }
   };
 }
 

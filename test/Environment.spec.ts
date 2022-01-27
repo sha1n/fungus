@@ -70,7 +70,7 @@ describe('Environment', () => {
 
       expect(service1.stopCalls).toEqual(0);
       expect(service2.stopCalls).toEqual(0);
-      expect(service3.stopCalls).toEqual(1);
+      expect(service3.stopCalls).toEqual(0);
       expect(service4.stopCalls).toEqual(1);
       expect(service5.stopCalls).toEqual(1);
     });
