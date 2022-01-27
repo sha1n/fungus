@@ -39,7 +39,7 @@ npm i
 
 ```ts
 // create services (implement the Service interface)
-const storageService = new ConfigService('my-config-service-id');
+const storageService = createConfigService('my-config-service-id');
 const mqService = ...;
 const configService = ...;
 const authService = ...;
@@ -65,18 +65,14 @@ const env = createEnvironment(
 );
 
 // start all the services in order (topological)
-env.start()
-  .then(ctx => {
-    // do whatever you need to do here...
-
-    const configServiceUrl = ctx.services.get('my-config-service-id').url;
+const runtimeContext = await env.start();
+const configServiceUrl = runtimeContext.services.get('my-config-service-id').url;
     
-    ...
-  })
-  .finally(() => {
-    // stop all service in reverse order
-    return env.stop();
-  });
+  ...
+
+// finally - stop all service in reverse order
+await env.stop();
+
 ```
 
 ## Demo
