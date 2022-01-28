@@ -8,7 +8,7 @@ function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
 
   const mysqlService = createDockerizedService({
-    image: 'mysql:8',
+    image: 'mysql:8.0.28',
     name: 'mysql',
     remove: true,
     daemon: true,
@@ -16,14 +16,35 @@ function configureEnvironment(logger: Logger): Environment {
       '3306': '3306'
     },
     volumes: {
-      'mysql-data': '/opt/test'
+      'mysql-data': '/var/lib/mysql'
     },
     env: {
-      MYSQL_ALLOW_EMPTY_PASSWORD: '1'
+      MYSQL_DATABASE: 'testdb',
+      MYSQL_ROOT_PASSWORD: 'password'
     }
   });
   const mysqlVolumeService = createDockerVolumeService({
     name: 'mysql-data',
+    remove: true
+  });
+  const mongoService = createDockerizedService({
+    image: 'mongo:5.0.5',
+    name: 'mongodb',
+    remove: true,
+    daemon: true,
+    ports: {
+      '27017': '27017'
+    },
+    volumes: {
+      'mongo-data': '/data/db'
+    },
+    env: {
+      MONGO_INITDB_ROOT_USERNAME: 'root',
+      MONGO_INITDB_ROOT_PASSWORD: 'password'
+    }
+  });
+  const mongoVolumeService = createDockerVolumeService({
+    name: 'mongo-data',
     remove: true
   });
   const nginxService = createDockerizedService({
@@ -38,16 +59,21 @@ function configureEnvironment(logger: Logger): Environment {
 
   return createEnvironment(
     {
-      Database: {
+      MySQL: {
         service: mysqlService,
         dependsOn: [mysqlVolumeService]
+      },
+      MongoDB: {
+        service: mongoService,
+        dependsOn: [mongoVolumeService]
       },
       App: {
         service: createEchoService('app1-srv'),
         dependsOn: [mysqlService, nginxService]
       },
       App2: {
-        service: createEchoService('app2-srv')
+        service: createEchoService('app2-srv'),
+        dependsOn: [mongoService]
       }
     },
     'demo-env'

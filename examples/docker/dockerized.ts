@@ -1,3 +1,4 @@
+import { retryAround, exponentialBackoffRetryPolicy, TimeUnit } from '@sha1n/about-time';
 import child_process from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../lib/logger';
@@ -15,6 +16,7 @@ type DockerContainerOptions = {
   cmd?: string;
   network?: string;
   daemon?: boolean;
+  checkHealth?: () => Promise<void>;
 };
 
 type DockerVolumeOptions = {
@@ -41,6 +43,10 @@ function createDockerizedService(opts: DockerContainerOptions): Service {
       await executeCommand(interpret(name, opts));
       started = true;
       logger.debug('container %s started', name);
+
+      if (opts?.checkHealth) {
+        await retryAround(opts.checkHealth, exponentialBackoffRetryPolicy(10, { limit: 10, units: TimeUnit.Seconds }));
+      }
 
       return {
         id: name,
@@ -74,7 +80,8 @@ function createDockerVolumeService(opts?: DockerVolumeOptions): Service {
       logger.debug('volume %s started', volumeName);
 
       return {
-        id: volumeName
+        id: volumeName,
+        toString: () => `[volume:${volumeName}]`
       };
     },
     stop: async () => {
