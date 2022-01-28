@@ -87,7 +87,9 @@ class Environment implements Identifiable {
 
   private async doStop(ctx: InternalRuntimeContext): Promise<void> {
     this.logger.info('stopping...');
-    await Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx)));
+    for (const service of this.servicesGraph.getShutdownSequence()) {
+      await service.stop(ctx).catch(this.logger.error);
+    }
   }
 }
 

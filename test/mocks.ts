@@ -1,3 +1,4 @@
+import { sleep, TimeUnit } from '@sha1n/about-time';
 import { v4 as uuid } from 'uuid';
 import { Service, ServiceMetadata } from '../lib/types';
 
@@ -40,6 +41,8 @@ class ServiceMock implements Service {
     if (this.failOnStart === true) {
       return Promise.reject(new StartError('synthetic-start-error'));
     }
+
+    sleep(10, TimeUnit.Milliseconds);
     return Promise.resolve({ id: this.id });
   }
 
