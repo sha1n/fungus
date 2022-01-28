@@ -31,15 +31,6 @@ function configureEnvironment(logger: Logger): Environment {
       '80': '80'
     }
   });
-  const hakoService = createDockerizedService({
-    image: 'sha1n/hako',
-    name: 'hako',
-    remove: true,
-    daemon: true,
-    ports: {
-      '80': '80'
-    }
-  });
 
   return createEnvironment(
     {
@@ -48,8 +39,7 @@ function configureEnvironment(logger: Logger): Environment {
         dependsOn: [mysqlService, nginxService]
       },
       App2: {
-        service: createEchoService('app2-srv'),
-        dependsOn: [hakoService]
+        service: createEchoService('app2-srv')
       }
     },
     'demo-env'
