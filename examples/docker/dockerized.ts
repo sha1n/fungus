@@ -3,9 +3,9 @@ import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../lib/logger';
 import { Service, ServiceMetadata } from '../../lib/types';
 
-const logger = createLogger('dockerized-service');
+const logger = createLogger('docker-service');
 
-type DockerOptions = {
+type DockerContainerOptions = {
   image: string;
   name?: string;
   remove?: boolean;
@@ -17,6 +17,11 @@ type DockerOptions = {
   daemon?: boolean;
 };
 
+type DockerVolumeOptions = {
+  name?: string;
+  remove?: boolean;
+};
+
 type ContainerMetadata = {
   name?: string;
   ports?: { [key: string]: string };
@@ -25,7 +30,7 @@ type ContainerMetadata = {
   toString: () => string;
 } & ServiceMetadata;
 
-function createDockerizedService(opts: DockerOptions): Service {
+function createDockerizedService(opts: DockerContainerOptions): Service {
   const name = opts.name || uuid();
   let started = false;
 
@@ -48,15 +53,41 @@ function createDockerizedService(opts: DockerOptions): Service {
     },
     stop: async () => {
       if (started) {
-        logger.debug('killing container %s...', name);
-        await executeCommand(`docker kill ${name}`);
-        logger.debug('container %s killed', name);
+        logger.debug('stopping container %s...', name);
+        await executeCommand(`docker stop ${name}`);
+        logger.debug('container %s stopped', name);
       }
     }
   };
 }
 
-function interpret(name: string, opts: DockerOptions): string {
+function createDockerVolumeService(opts?: DockerVolumeOptions): Service {
+  const volumeName = opts?.name || uuid();
+  let started = false;
+
+  return {
+    id: volumeName,
+    start: async (): Promise<ContainerMetadata> => {
+      logger.debug('creating docker volume %s...', volumeName);
+      await executeCommand(`docker volume create ${volumeName}`);
+      started = true;
+      logger.debug('volume %s started', volumeName);
+
+      return {
+        id: volumeName
+      };
+    },
+    stop: async () => {
+      if (started && opts?.remove) {
+        logger.debug('deleting volume %s...', volumeName);
+        await executeCommand(`docker volume remove --force ${volumeName}`);
+        logger.debug('volume %s removed', volumeName);
+      }
+    }
+  };
+}
+
+function interpret(name: string, opts: DockerContainerOptions): string {
   const command = ['docker', 'run', '--name', name];
 
   if (opts.daemon) {
@@ -105,5 +136,5 @@ async function executeCommand(cmd: string): Promise<number> {
   });
 }
 
-export { DockerOptions, ContainerMetadata };
+export { DockerContainerOptions, ContainerMetadata, DockerVolumeOptions, createDockerVolumeService };
 export default createDockerizedService;

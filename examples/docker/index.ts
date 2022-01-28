@@ -2,7 +2,7 @@ import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
 import createEchoService from '../EchoService';
 import run from '../run';
-import createDockerizedService from './dockerized';
+import createDockerizedService, { createDockerVolumeService } from './dockerized';
 
 function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
@@ -16,11 +16,15 @@ function configureEnvironment(logger: Logger): Environment {
       '3306': '3306'
     },
     volumes: {
-      test: '/opt/test'
+      'mysql-data': '/opt/test'
     },
     env: {
       MYSQL_ALLOW_EMPTY_PASSWORD: '1'
     }
+  });
+  const mysqlVolumeService = createDockerVolumeService({
+    name: 'mysql-data',
+    remove: true
   });
   const nginxService = createDockerizedService({
     image: 'nginx',
@@ -34,6 +38,10 @@ function configureEnvironment(logger: Logger): Environment {
 
   return createEnvironment(
     {
+      Database: {
+        service: mysqlService,
+        dependsOn: [mysqlVolumeService]
+      },
       App: {
         service: createEchoService('app1-srv'),
         dependsOn: [mysqlService, nginxService]

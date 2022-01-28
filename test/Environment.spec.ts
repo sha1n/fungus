@@ -68,11 +68,11 @@ describe('Environment', () => {
       expect(service4.startCalls).toEqual(1);
       expect(service5.startCalls).toEqual(1);
 
-      expect(service1.stopCalls).toEqual(0);
-      expect(service2.stopCalls).toEqual(0);
-      expect(service3.stopCalls).toEqual(0);
-      expect(service4.stopCalls).toEqual(1);
-      expect(service5.stopCalls).toEqual(1);
+      expect(service1.stopCalls).toEqual(service1.startCalls);
+      expect(service2.stopCalls).toEqual(service2.startCalls);
+      expect(service3.stopCalls).toEqual(0); // the controller prevents this call because the service never started successfully
+      expect(service4.stopCalls).toEqual(service4.startCalls);
+      expect(service5.stopCalls).toEqual(service5.startCalls);
     });
   });
 
