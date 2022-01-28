@@ -23,7 +23,7 @@ class EchoService implements Service {
 
   async start(ctx: RuntimeContext): Promise<HttpServiceMetadata> {
     this.logger.info(`start called with context of env: ${ctx.name}`);
-    this.logger.info(`available services: ${Array.from(ctx.services.values()).join(', ')}`);
+    this.logger.info(`available services: ${Array.from(ctx.serviceCatalog.values()).join(', ')}`);
 
     this.logger.info(`staring ${this.id}...`);
     const { stop, scheme, address, port } = await startEchoServer();
