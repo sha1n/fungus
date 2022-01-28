@@ -76,7 +76,7 @@ await env.stop();
 ```
 
 ## Demo
-- The dockerised services demo code can be found [here](examples/docker/index.ts). 
+- The dockerized services demo code can be found [here](examples/docker/index.ts). 
   
 ```
 yarn run docker-demo
