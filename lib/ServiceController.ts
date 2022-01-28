@@ -1,7 +1,8 @@
 import assert = require('assert');
 import EventEmitter = require('events');
+import { InternalContext } from './Environment';
 import { createLogger } from './logger';
-import { RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
+import { Service, ServiceId, ServiceMetadata } from './types';
 
 const logger = createLogger('srv-ctrl');
 
@@ -23,27 +24,31 @@ class ServiceController extends EventEmitter {
     this.pendingDependencies.add(dep.id);
   }
 
-  async onDependencyStarted(metadata: ServiceMetadata, ctx: RuntimeContext): Promise<void> {
+  async onDependencyStarted(metadata: ServiceMetadata, ctx: InternalContext): Promise<void> {
     logger.debug('%s: dependency started -> %s', this.id, metadata.id);
     this.startedDeps.set(metadata.id, metadata);
     this.pendingDependencies.delete(metadata.id);
-    if (this.pendingDependencies.size === 0 && !(this.isStarted() || this.starting)) {
+
+    assert(
+      !this.isStarted() && !this.starting,
+      `Unexpected state internal state. starting=${this.starting}, started=${this.isStarted()}`
+    );
+
+    if (this.pendingDependencies.size === 0 && !ctx.shuttingDown) {
       logger.debug('%s: all dependencies are started', this.id);
       await this.start(ctx);
     }
   }
 
-  readonly start = async (ctx: RuntimeContext): Promise<void> => {
-    if (this.isStarted() || this.startPromise) {
+  readonly start = async (ctx: InternalContext): Promise<void> => {
+    if (this.isStarted()) {
       return;
     }
 
-    this.startPromise = this.doStart(ctx);
-
-    return this.startPromise;
+    return this.startPromise || (this.startPromise = this.doStart(ctx));
   };
 
-  private async doStart(ctx: RuntimeContext): Promise<void> {
+  private async doStart(ctx: InternalContext): Promise<void> {
     try {
       this.meta = await this.service.start(ctx);
       ctx.register(this.meta);
@@ -56,7 +61,7 @@ class ServiceController extends EventEmitter {
     }
   }
 
-  readonly stop = async (ctx: RuntimeContext): Promise<void> => {
+  readonly stop = async (ctx: InternalContext): Promise<void> => {
     logger.debug('%s: going to shutdown...', this.id);
     if (!this.isStarted() && !this.startPromise) {
       return;

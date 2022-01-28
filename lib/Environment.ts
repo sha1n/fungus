@@ -2,18 +2,33 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { DependencyMap, Identifiable, RuntimeContext, Service, ServiceMetadata } from './types';
+import { DependencyMap, Identifiable, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
+
+class InternalRuntimeContext implements RuntimeContext {
+  private readonly _serviceCatalog = new Map();
+  shuttingDown: boolean;
+
+  constructor(readonly name: string) {}
+
+  get serviceCatalog(): ReadonlyMap<ServiceId, ServiceMetadata> {
+    return this._serviceCatalog;
+  }
+
+  register(metadata: ServiceMetadata): void {
+    this._serviceCatalog.set(metadata.id, metadata);
+  }
+}
 
 class Environment implements Identifiable {
   private readonly servicesGraph = new ServiceGraph();
-  private readonly ctx: RuntimeContext;
+  private readonly ctx: InternalRuntimeContext;
   private readonly logger: Logger;
   readonly id: string;
 
   constructor(name?: string) {
     this.id = name || `env-${uuid()}`;
     this.logger = createLogger(this.id);
-    this.ctx = new RuntimeContext(this.id);
+    this.ctx = new InternalRuntimeContext(this.id);
   }
 
   register(service: Service, dependencies?: ReadonlyArray<Service>): void {
@@ -30,6 +45,7 @@ class Environment implements Identifiable {
   }
 
   stop(): Promise<void> {
+    this.ctx.shuttingDown = true;
     return this.doStop(this.ctx);
   }
 
@@ -37,18 +53,21 @@ class Environment implements Identifiable {
     return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
-  private async doStart(ctx: RuntimeContext): Promise<RuntimeContext> {
+  private async doStart(ctx: InternalRuntimeContext): Promise<RuntimeContext> {
     this.logger.info('starting up...');
     const allStartedPromise = new Promise<RuntimeContext>((resolve, reject) => {
       const services = this.servicesGraph.getServices();
 
       for (const service of services) {
-        service.prependOnceListener('error', reject);
-        service.prependOnceListener('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
+        service.prependOnceListener('error', error => {
+          ctx.shuttingDown = true;
+          reject(error);
+        });
+        service.prependOnceListener('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', reject);
           ctx.register(metadata);
-          if (ctx.services.size === services.length) {
+          if (ctx.serviceCatalog.size === services.length) {
             resolve(ctx);
           }
         });
@@ -58,8 +77,6 @@ class Environment implements Identifiable {
     });
 
     try {
-      // await Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
-
       const result = await allStartedPromise;
       return result;
     } catch (e) {
@@ -68,7 +85,7 @@ class Environment implements Identifiable {
     }
   }
 
-  private async doStop(ctx: RuntimeContext): Promise<void> {
+  private async doStop(ctx: InternalRuntimeContext): Promise<void> {
     this.logger.info('stopping...');
     await Promise.allSettled(this.servicesGraph.getShutdownSequence().map(s => s.stop(ctx)));
   }
@@ -96,7 +113,7 @@ class ServiceGraph {
     if (!this.graph.isDirectAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${controller.id} forms a cycle.`);
     }
-    controller.once('started', (metadata: ServiceMetadata, ctx: RuntimeContext) => {
+    controller.once('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
       // An event emitter should trigger a promise rejection up the stack
       service.onDependencyStarted(metadata, ctx).catch(this.logger.error);
     });
@@ -126,4 +143,4 @@ function createEnvironment(map: DependencyMap, name?: string): Environment {
   return env;
 }
 
-export { type Environment, createEnvironment };
+export { type Environment, InternalRuntimeContext as InternalContext, createEnvironment };

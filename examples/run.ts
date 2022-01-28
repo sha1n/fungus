@@ -9,7 +9,7 @@ export async function run(createEnv: (logger: Logger) => Environment): Promise<v
   try {
     const ctx = await env.start();
 
-    logger.info(`environment services: ${Array.from(ctx.services.values()).join(', ')}`);
+    logger.info(`environment services: ${Array.from(ctx.serviceCatalog.values()).join(', ')}`);
 
     await env.stop();
     logger.info('environment stopped');

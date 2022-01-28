@@ -31,7 +31,7 @@ describe('Environment', () => {
       const ctx = await env.start();
 
       expect(ctx.name).toEqual(env.id);
-      expect(Array.from(ctx.services.values())).toIncludeSameMembers([
+      expect(Array.from(ctx.serviceCatalog.values())).toIncludeSameMembers([
         metadata1,
         metadata2,
         metadata3,
