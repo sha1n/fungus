@@ -45,8 +45,12 @@ class Environment implements Identifiable {
   }
 
   stop(): Promise<void> {
-    this.ctx.shuttingDown = true;
-    return this.doStop(this.ctx);
+    try {
+      this.ctx.shuttingDown = true;
+      return this.doStop(this.ctx);
+    } finally {
+      this.ctx.shuttingDown = false;
+    }
   }
 
   private getOrCreateControllerFor(service: Service): ServiceController {
