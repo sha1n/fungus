@@ -6,17 +6,14 @@ type RuntimeContext = {
   readonly shuttingDown: boolean;
 };
 
-interface ServiceMetadata extends Identifiable {
+interface ServiceMetadata {
   readonly id: ServiceId;
 }
 
-interface Service extends Identifiable {
+interface Service {
+  readonly id: ServiceId;
   start(ctx: RuntimeContext): Promise<ServiceMetadata>;
   stop(ctx: RuntimeContext): Promise<void>;
-}
-
-interface Identifiable {
-  readonly id: string;
 }
 
 type DependencyRecord = { service: Service; dependsOn?: Service[] };
@@ -25,4 +22,4 @@ type DependencyMap = {
   [key: ServiceId]: DependencyRecord;
 };
 
-export { ServiceId, RuntimeContext, ServiceMetadata, Service, Identifiable, DependencyMap, DependencyRecord };
+export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord };

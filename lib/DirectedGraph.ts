@@ -1,4 +1,6 @@
-import { Identifiable } from './types';
+interface Identifiable {
+  readonly id: string;
+}
 
 class DirectedGraph<T extends Identifiable> {
   private readonly nodes = new Map<string, T>();
@@ -136,4 +138,4 @@ function getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
   return dependencies;
 }
 
-export { DirectedGraph };
+export { DirectedGraph, Identifiable };

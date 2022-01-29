@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { DependencyMap, Identifiable, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
+import { DependencyMap, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
 
 class InternalRuntimeContext implements RuntimeContext {
   private readonly _serviceCatalog = new Map();
@@ -19,16 +19,15 @@ class InternalRuntimeContext implements RuntimeContext {
   }
 }
 
-class Environment implements Identifiable {
+class Environment {
   private readonly servicesGraph = new ServiceGraph();
   private readonly ctx: InternalRuntimeContext;
   private readonly logger: Logger;
-  readonly id: string;
 
   constructor(name?: string) {
-    this.id = name || `env-${uuid()}`;
-    this.logger = createLogger(this.id);
-    this.ctx = new InternalRuntimeContext(this.id);
+    const envName = name || `env-${uuid()}`;
+    this.logger = createLogger(envName);
+    this.ctx = new InternalRuntimeContext(envName);
   }
 
   register(service: Service, dependencies?: ReadonlyArray<Service>): void {
