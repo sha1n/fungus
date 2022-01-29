@@ -1,7 +1,6 @@
-import { DirectedGraph } from '../lib/DirectedGraph';
+import { DirectedGraph, Identifiable } from '../lib/DirectedGraph';
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
-import { Identifiable } from '../lib/types';
 
 describe('DirectedGraph', () => {
   describe('isDirectAcyclic', function () {
