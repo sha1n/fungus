@@ -9,15 +9,16 @@ const logger = createLogger('srv-ctrl');
 class ServiceController extends EventEmitter {
   private readonly pendingDependencies: Set<ServiceId>;
   private readonly startedDeps = new Map<ServiceId, ServiceMetadata>();
-  private meta: ServiceMetadata = undefined;
-  private starting = false;
-  readonly id: string;
   private startPromise: Promise<void>;
+  private meta: ServiceMetadata = undefined;
 
   constructor(readonly service: Service, ...deps: ReadonlyArray<ServiceId>) {
     super();
     this.pendingDependencies = new Set(...deps);
-    this.id = service.id;
+  }
+
+  get id(): string {
+    return this.service.id;
   }
 
   addDependency(dep: ServiceController): void {
@@ -30,8 +31,8 @@ class ServiceController extends EventEmitter {
     this.pendingDependencies.delete(metadata.id);
 
     assert(
-      !this.isStarted() && !this.starting,
-      `Unexpected state internal state. starting=${this.starting}, started=${this.isStarted()}`
+      !this.isStarted() && !this.startPromise,
+      `Unexpected internal state. starting=${this.startPromise !== undefined}, started=${this.isStarted()}`
     );
 
     if (this.pendingDependencies.size === 0 && !ctx.shuttingDown) {
@@ -58,6 +59,8 @@ class ServiceController extends EventEmitter {
 
       assert(hasListeners, 'A service controller is expected to have a listener at this point');
       throw e;
+    } finally {
+      this.startPromise = undefined;
     }
   }
 
