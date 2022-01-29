@@ -2,7 +2,7 @@ import { createEnvironment, Environment } from '../../lib/Environment';
 import { Logger } from '../../lib/logger';
 import createEchoService from '../EchoService';
 import run from '../run';
-import createDockerizedService, { createDockerVolumeService } from './dockerized';
+import createDockerizedService, { createDockerVolumeService, dockerExec } from './dockerized';
 
 function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
@@ -19,35 +19,19 @@ function configureEnvironment(logger: Logger): Environment {
       'mysql-data': '/var/lib/mysql'
     },
     env: {
-      MYSQL_DATABASE: 'testdb',
-      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_ALLOW_EMPTY_PASSWORD: '1'
+    },
+    healthCheck: {
+      check: async () => {
+        await dockerExec('mysql', 'mysql -hlocalhost -P3306 -uroot');
+      }
     }
   });
   const mysqlVolumeService = createDockerVolumeService({
     name: 'mysql-data',
     remove: true
   });
-  const mongoService = createDockerizedService({
-    image: 'mongo:5.0.5',
-    name: 'mongodb',
-    remove: true,
-    daemon: true,
-    ports: {
-      '27017': '27017'
-    },
-    volumes: {
-      'mongo-data': '/data/db'
-    },
-    env: {
-      MONGO_INITDB_ROOT_USERNAME: 'root',
-      MONGO_INITDB_ROOT_PASSWORD: 'password'
-    }
-  });
-  const mongoVolumeService = createDockerVolumeService({
-    name: 'mongo-data',
-    remove: true
-  });
-  const nginxService = createDockerizedService({
+  const proxyService = createDockerizedService({
     image: 'nginx',
     name: 'proxy',
     remove: true,
@@ -63,17 +47,13 @@ function configureEnvironment(logger: Logger): Environment {
         service: mysqlService,
         dependsOn: [mysqlVolumeService]
       },
-      MongoDB: {
-        service: mongoService,
-        dependsOn: [mongoVolumeService]
+      AppService1: {
+        service: createEchoService('app-srv-1'),
+        dependsOn: [mysqlService, proxyService]
       },
-      App: {
-        service: createEchoService('app1-srv'),
-        dependsOn: [mysqlService, nginxService]
-      },
-      App2: {
-        service: createEchoService('app2-srv'),
-        dependsOn: [mongoService]
+      AppService2: {
+        service: createEchoService('app-srv-2'),
+        dependsOn: [mysqlService]
       }
     },
     'demo-env'

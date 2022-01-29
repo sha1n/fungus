@@ -1,4 +1,4 @@
-import { retryAround, exponentialBackoffRetryPolicy, TimeUnit } from '@sha1n/about-time';
+import { retryAround, simpleRetryPolicy, TimeUnit, RetryPolicy } from '@sha1n/about-time';
 import child_process from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../lib/logger';
@@ -16,7 +16,10 @@ type DockerContainerOptions = {
   cmd?: string;
   network?: string;
   daemon?: boolean;
-  checkHealth?: () => Promise<void>;
+  healthCheck?: {
+    check: () => Promise<void>;
+    retryPolicy?: RetryPolicy;
+  };
 };
 
 type DockerVolumeOptions = {
@@ -44,8 +47,17 @@ function createDockerizedService(opts: DockerContainerOptions): Service {
       started = true;
       logger.debug('container %s started', name);
 
-      if (opts?.checkHealth) {
-        await retryAround(opts.checkHealth, exponentialBackoffRetryPolicy(10, { limit: 10, units: TimeUnit.Seconds }));
+      if (opts?.healthCheck) {
+        logger.info('waiting for container %s to pass health check...', name);
+        await retryAround(
+          async () => {
+            logger.info('checking health of container %s...', name);
+            await opts.healthCheck.check();
+          },
+
+          opts.healthCheck?.retryPolicy || simpleRetryPolicy(10, 1, { units: TimeUnit.Second })
+        );
+        logger.info('container %s is ready', name);
       }
 
       return {
@@ -126,6 +138,12 @@ function interpret(name: string, opts: DockerContainerOptions): string {
   return command.join(' ');
 }
 
+async function dockerExec(container: string, command: string): Promise<number> {
+  const dockerCommand = `docker exec ${container} ${command}`;
+
+  return executeCommand(dockerCommand);
+}
+
 async function executeCommand(cmd: string): Promise<number> {
   logger.debug('running: %s', cmd);
   return new Promise<number>((resolve, reject) => {
@@ -143,5 +161,5 @@ async function executeCommand(cmd: string): Promise<number> {
   });
 }
 
-export { DockerContainerOptions, ContainerMetadata, DockerVolumeOptions, createDockerVolumeService };
+export { DockerContainerOptions, ContainerMetadata, DockerVolumeOptions, createDockerVolumeService, dockerExec };
 export default createDockerizedService;
