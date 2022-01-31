@@ -31,7 +31,7 @@ class Environment {
   }
 
   register(service: Service, dependencies?: ReadonlyArray<Service>): void {
-    this.logger.info(`registering service ${service.id}`);
+    this.logger.info('registering service %s', service.id);
     const serviceController = this.getOrCreateControllerFor(service);
     this.servicesGraph.addService(serviceController);
     dependencies?.forEach(dep => {
@@ -109,16 +109,16 @@ class ServiceGraph {
     return this.graph.getNode(id);
   }
 
-  addDependency(service: ServiceController, controller: ServiceController): void {
-    this.logger.info(`adding dependency: ${service.id} depends on ${controller.id}`);
-    this.graph.addEdge(controller, service);
+  addDependency(service: ServiceController, dependency: ServiceController): void {
+    this.logger.info('adding dependency: %s depends on %s', service.id, dependency.id);
+    this.graph.addEdge(dependency, service);
     // This is required in order to allow the controller to start once all deps are started.
-    service.addDependency(controller);
+    service.addDependency(dependency);
 
     if (!this.graph.isDirectAcyclic()) {
-      throw new Error(`the dependency from ${service.id} to ${controller.id} forms a cycle.`);
+      throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
-    controller.once('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
+    dependency.once('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
       // An event emitter should trigger a promise rejection up the stack
       service.onDependencyStarted(metadata, ctx).catch(this.logger.error);
     });

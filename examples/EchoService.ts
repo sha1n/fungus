@@ -18,7 +18,7 @@ class EchoService implements Service {
   private stopHttpServer: () => Promise<void>;
 
   constructor(readonly id: string) {
-    this.logger = createLogger(`echo-${this.id}`);
+    this.logger = createLogger(this.id);
   }
 
   async start(ctx: RuntimeContext): Promise<HttpServiceMetadata> {
