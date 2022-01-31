@@ -101,7 +101,7 @@ describe('Environment', () => {
       expect(service4.stopCalls).toEqual(1);
     });
 
-    test('should continue to stop all registered services even when one fails', async () => {
+    test('should continue to stop all registered services even when one fails and reject at the end', async () => {
       const [service1] = aServiceMock();
       const [service2] = aServiceMock(false, true);
       const [service3] = aServiceMock();
@@ -114,7 +114,7 @@ describe('Environment', () => {
       });
 
       await env.start();
-      await expect(env.stop()).toResolve();
+      await expect(env.stop()).toReject();
 
       expect(service1.stopCalls).toEqual(1);
       expect(service2.stopCalls).toEqual(1);

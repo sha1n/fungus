@@ -1,7 +1,7 @@
 import { sleep, TimeUnit } from '@sha1n/about-time';
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
-import { InternalContext } from '../lib/Environment';
+import { InternalRuntimeContext } from '../lib/Environment';
 import { ServiceController } from '../lib/ServiceController';
 import { Service, ServiceMetadata } from '../lib/types';
 import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';
@@ -114,28 +114,36 @@ describe('ServiceController', () => {
     });
   });
 
-  describe('onDependencyStarted', () => {
-    test('should start the service if no pending deps are left', async () => {
-      const [controller, service, metadata] = aService();
+  describe('addDependency', () => {
+    test('should register a listener on dependency started events and start the service if no pending deps are left', async () => {
+      const [controller, service] = aService();
+      const [dependency] = aService();
       const ctx = anRuntimeContext();
 
-      await expect(controller.onDependencyStarted(metadata, ctx)).toResolve();
+      controller.addDependency(dependency);
+      expect(service.startCalls).toEqual(0);
+
+      await dependency.start(ctx);
+
       expect(service.startCalls).toEqual(1);
     });
 
     test('should not start the service when the context is shutting down', async () => {
-      const [controller, service, metadata] = aService();
+      const [controller, service] = aService();
+      const [dependency] = aService();
       const ctx = anRuntimeContext();
       ctx.shuttingDown = true;
 
-      await expect(controller.onDependencyStarted(metadata, ctx)).toResolve();
+      controller.addDependency(dependency);
+      await dependency.start(ctx);
+
       expect(service.startCalls).toEqual(0);
     });
   });
 });
 
-function anRuntimeContext(): InternalContext {
-  return new InternalContext(`env-${uuid()}`);
+function anRuntimeContext(): InternalRuntimeContext {
+  return new InternalRuntimeContext(`env-${uuid()}`);
 }
 
 function aService(failOnStart?: boolean, failOnStop?: boolean): [ServiceController, ServiceMock, ServiceMetadata] {

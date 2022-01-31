@@ -17,6 +17,10 @@ class InternalRuntimeContext implements RuntimeContext {
   register(metadata: ServiceMetadata): void {
     this._serviceCatalog.set(metadata.id, metadata);
   }
+
+  unregister(id: ServiceId): void {
+    this._serviceCatalog.delete(id);
+  }
 }
 
 class Environment {
@@ -32,10 +36,9 @@ class Environment {
 
   register(service: Service, dependencies?: ReadonlyArray<Service>): void {
     this.logger.info('registering service %s', service.id);
-    const serviceController = this.getOrCreateControllerFor(service);
-    this.servicesGraph.addService(serviceController);
+    this.servicesGraph.addService(service);
     dependencies?.forEach(dep => {
-      this.servicesGraph.addDependency(serviceController, this.getOrCreateControllerFor(dep));
+      this.servicesGraph.addDependency(service, dep);
     });
   }
 
@@ -50,10 +53,6 @@ class Environment {
     } finally {
       this.ctx.shuttingDown = false;
     }
-  }
-
-  private getOrCreateControllerFor(service: Service): ServiceController {
-    return this.servicesGraph.getService(service.id) || new ServiceController(service);
   }
 
   private async doStart(ctx: InternalRuntimeContext): Promise<RuntimeContext> {
@@ -90,8 +89,24 @@ class Environment {
 
   private async doStop(ctx: InternalRuntimeContext): Promise<void> {
     this.logger.info('stopping...');
-    for (const service of this.servicesGraph.getShutdownSequence()) {
-      await service.stop(ctx).catch(this.logger.error);
+
+    // The teardown algorithm traverses all the services in reverse topological order
+    // to ensure that we stop as clean as possible, even if something fails
+    const errors: Array<Error> = [];
+    for (const service of this.servicesGraph.getTeardownServices()) {
+      await service
+        .stop(ctx)
+        .catch(e => {
+          errors.push(e);
+          return Promise.resolve();
+        })
+        .finally(() => {
+          ctx.unregister(service.id);
+        });
+    }
+
+    if (errors.length > 0) {
+      throw new Error(errors.map(e => e.message).join('\n'));
     }
   }
 }
@@ -101,39 +116,38 @@ class ServiceGraph {
 
   private readonly graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
 
-  addService(service: ServiceController): void {
-    this.graph.addNode(service);
+  addService(service: Service): void {
+    this.graph.addNode(this.getOrCreateControllerFor(service));
   }
 
-  getService(id: string): ServiceController {
-    return this.graph.getNode(id);
-  }
+  addDependency(service: Service, dependency: Service): void {
+    const srvController = this.getOrCreateControllerFor(service);
+    const depController = this.getOrCreateControllerFor(dependency);
 
-  addDependency(service: ServiceController, dependency: ServiceController): void {
-    this.logger.info('adding dependency: %s depends on %s', service.id, dependency.id);
-    this.graph.addEdge(dependency, service);
-    // This is required in order to allow the controller to start once all deps are started.
-    service.addDependency(dependency);
+    this.logger.info('adding dependency: %s depends on %s', service.id, depController.id);
+    this.graph.addEdge(depController, srvController);
 
     if (!this.graph.isDirectAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
-    dependency.once('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
-      // An event emitter should trigger a promise rejection up the stack
-      service.onDependencyStarted(metadata, ctx).catch(this.logger.error);
-    });
+    // This is required in order to allow the controller to start once all deps are started.
+    srvController.addDependency(depController);
   }
 
-  getServices(): Array<ServiceController> {
+  getServices(): ServiceController[] {
     return this.graph.getNodes();
   }
 
-  getBootstrapServices(): Array<ServiceController> {
+  getBootstrapServices(): ServiceController[] {
     return this.graph.getRoots();
   }
 
-  getShutdownSequence(): Array<ServiceController> {
+  getTeardownServices(): ServiceController[] {
     return this.graph.reverseTopologicalSort();
+  }
+
+  private getOrCreateControllerFor(service: Service): ServiceController {
+    return this.graph.getNode(service.id) || new ServiceController(service);
   }
 }
 
@@ -148,4 +162,4 @@ function createEnvironment(map: DependencyMap, name?: string): Environment {
   return env;
 }
 
-export { type Environment, InternalRuntimeContext as InternalContext, createEnvironment };
+export { type Environment, InternalRuntimeContext, createEnvironment };
