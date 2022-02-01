@@ -1,7 +1,7 @@
 import { sleep, TimeUnit } from '@sha1n/about-time';
 import 'jest-extended';
 import { v4 as uuid } from 'uuid';
-import { InternalRuntimeContext } from '../lib/Environment';
+import { InternalRuntimeContext } from '../lib/env';
 import { ServiceController } from '../lib/ServiceController';
 import { Service, ServiceMetadata } from '../lib/types';
 import { aServiceMock, ServiceMock, StartError, StopError } from './mocks';

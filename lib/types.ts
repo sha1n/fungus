@@ -22,4 +22,10 @@ type DependencyMap = {
   [key: ServiceId]: DependencyRecord;
 };
 
-export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord };
+interface Environment {
+  readonly name: string;
+  start(): Promise<RuntimeContext>;
+  stop(): Promise<void>;
+}
+
+export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord, Environment };

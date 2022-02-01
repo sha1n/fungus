@@ -1,17 +1,32 @@
 import 'jest-extended';
-import { createEnvironment } from '../lib/Environment';
+import { createEnvironment } from '../lib/env';
 import { aServiceMock } from './mocks';
+import { v4 as uuid } from 'uuid';
 
 describe('Environment', () => {
   test('should fail if a cyclic service dependency is added', () => {
     const [service1] = aServiceMock();
     const [service2] = aServiceMock();
 
-    const env = createEnvironment({
-      1: { service: service1, dependsOn: [service2] }
-    });
+    expect(() =>
+      createEnvironment({
+        1: { service: service1, dependsOn: [service2] },
+        2: { service: service2, dependsOn: [service1] }
+      })
+    ).toThrowError();
+  });
 
-    expect(() => env.register(service2, [service1])).toThrowError();
+  test('should assign a default name if non is specified', () => {
+    const env = createEnvironment({});
+
+    expect(env.name).toBeDefined();
+  });
+
+  test('should assign name', () => {
+    const expected = uuid();
+    const env = createEnvironment({}, expected);
+
+    expect(env.name).toEqual(expected);
   });
 
   describe('start', () => {
@@ -73,6 +88,19 @@ describe('Environment', () => {
       expect(service4.stopCalls).toEqual(service4.startCalls);
       expect(service5.stopCalls).toEqual(service5.startCalls);
     });
+
+    test('should reject if the environment is already started', async () => {
+      const [service] = aServiceMock();
+
+      const env = createEnvironment({
+        1: { service }
+      });
+      await env.start();
+
+      await expect(env.start()).rejects.toThrow(/Already started/);
+
+      await env.stop();
+    });
   });
 
   describe('stop', () => {
@@ -120,6 +148,12 @@ describe('Environment', () => {
       expect(service2.stopCalls).toEqual(1);
       expect(service3.stopCalls).toEqual(1);
       expect(service4.stopCalls).toEqual(1);
+    });
+
+    test('should reject if the env is not started', async () => {
+      const env = createEnvironment({});
+
+      await expect(env.stop()).rejects.toThrow(/Not started/);
     });
   });
 });

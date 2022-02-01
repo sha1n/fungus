@@ -1,4 +1,4 @@
-import { Environment } from '..';
+import { Environment } from '../lib/types';
 import { createLogger, Logger } from '../lib/logger';
 
 const logger = createLogger('main');

@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { DependencyMap, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
+import { DependencyMap, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
 
 class InternalRuntimeContext implements RuntimeContext {
   private readonly _serviceCatalog = new Map();
@@ -23,51 +23,46 @@ class InternalRuntimeContext implements RuntimeContext {
   }
 }
 
-class Environment {
-  private readonly servicesGraph = new ServiceGraph();
-  private readonly ctx: InternalRuntimeContext;
+type EnvState = {
+  start(): Promise<[RuntimeContext, StartedEnv]>;
+  stop(): Promise<StoppedEnv>;
+};
+
+class StoppedEnv {
   private readonly logger: Logger;
+  private readonly ctx: InternalRuntimeContext;
+  private readonly servicesGraph: ServiceGraph;
 
-  constructor(name?: string) {
-    const envName = name || `env-${uuid()}`;
-    this.logger = createLogger(envName);
-    this.ctx = new InternalRuntimeContext(envName);
+  constructor(private readonly map: DependencyMap, name: string) {
+    this.logger = createLogger(name);
+    this.ctx = new InternalRuntimeContext(name);
+    this.servicesGraph = this.init();
   }
 
-  register(service: Service, dependencies?: ReadonlyArray<Service>): void {
-    this.logger.info('registering service %s', service.id);
-    this.servicesGraph.addService(service);
-    dependencies?.forEach(dep => {
-      this.servicesGraph.addDependency(service, dep);
-    });
+  async start(): Promise<[RuntimeContext, StartedEnv]> {
+    const outCtx = await this.doStart(this.servicesGraph, this.ctx);
+
+    return [outCtx, this.startedEnv()];
   }
 
-  start(): Promise<RuntimeContext> {
-    return this.doStart(this.ctx);
+  async stop(): Promise<StoppedEnv> {
+    return Promise.reject(new Error('Not started'));
   }
 
-  stop(): Promise<void> {
-    try {
-      this.ctx.shuttingDown = true;
-      return this.doStop(this.ctx);
-    } finally {
-      this.ctx.shuttingDown = false;
-    }
-  }
-
-  private async doStart(ctx: InternalRuntimeContext): Promise<RuntimeContext> {
+  private async doStart(serviceGraph: ServiceGraph, ctx: InternalRuntimeContext): Promise<RuntimeContext> {
     this.logger.info('starting up...');
     const allStartedPromise = new Promise<RuntimeContext>((resolve, reject) => {
-      const services = this.servicesGraph.getServices();
+      const services = serviceGraph.getServices();
+      const onError = (error: Error) => {
+        ctx.shuttingDown = true;
+        reject(error);
+      };
 
       for (const service of services) {
-        service.prependOnceListener('error', error => {
-          ctx.shuttingDown = true;
-          reject(error);
-        });
+        service.prependOnceListener('error', onError);
         service.prependOnceListener('started', (metadata: ServiceMetadata, ctx: InternalRuntimeContext) => {
           // This is critical to avoid handling errors that occur after startup
-          service.removeListener('error', reject);
+          service.removeListener('error', onError);
           ctx.register(metadata);
           if (ctx.serviceCatalog.size === services.length) {
             resolve(ctx);
@@ -75,16 +70,59 @@ class Environment {
         });
       }
 
-      Promise.allSettled(this.servicesGraph.getBootstrapServices().map(s => s.start(ctx)));
+      Promise.allSettled(serviceGraph.getBootstrapServices().map(s => s.start(ctx)));
     });
 
     try {
       const result = await allStartedPromise;
       return result;
     } catch (e) {
-      await this.stop().catch(this.logger.error);
+      await this.startedEnv().stop().catch(this.logger.error);
       throw e;
     }
+  }
+
+  private startedEnv(): StartedEnv {
+    return new StartedEnv(this.servicesGraph, this.map, this.ctx.name);
+  }
+
+  private init(): ServiceGraph {
+    const servicesGraph = new ServiceGraph();
+
+    const register = (service: Service, dependencies?: ReadonlyArray<Service>) => {
+      this.logger.info('registering service %s', service.id);
+      servicesGraph.addService(service);
+      dependencies?.forEach(dep => {
+        servicesGraph.addDependency(service, dep);
+      });
+    };
+
+    for (const key of Object.keys(this.map)) {
+      const record = this.map[key];
+      register(record.service, record.dependsOn);
+    }
+
+    return servicesGraph;
+  }
+}
+
+class StartedEnv {
+  private readonly logger: Logger;
+  private readonly ctx: InternalRuntimeContext;
+
+  constructor(private readonly servicesGraph: ServiceGraph, private readonly map: DependencyMap, name: string) {
+    this.logger = createLogger(name);
+    this.ctx = new InternalRuntimeContext(name);
+  }
+
+  async start(): Promise<[RuntimeContext, StartedEnv]> {
+    return Promise.reject(new Error('Already started'));
+  }
+
+  async stop(): Promise<StoppedEnv> {
+    await this.doStop(this.ctx);
+
+    return new StoppedEnv(this.map, this.ctx.name);
   }
 
   private async doStop(ctx: InternalRuntimeContext): Promise<void> {
@@ -152,14 +190,24 @@ class ServiceGraph {
 }
 
 function createEnvironment(map: DependencyMap, name?: string): Environment {
-  const env = new Environment(name);
+  const envName = name || `env-${uuid()}`;
+  const stoppedEnv = new StoppedEnv(map, name);
+  let env: EnvState = stoppedEnv;
 
-  for (const key of Object.keys(map)) {
-    const record = map[key];
-    env.register(record.service, record.dependsOn);
-  }
+  return {
+    name: envName,
 
-  return env;
+    start: async () => {
+      const [ctx, startedEnv] = await env.start();
+      env = startedEnv;
+
+      return ctx;
+    },
+
+    stop: async () => {
+      env = await env.stop();
+    }
+  };
 }
 
-export { type Environment, InternalRuntimeContext, createEnvironment };
+export { InternalRuntimeContext, createEnvironment };

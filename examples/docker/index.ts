@@ -1,7 +1,8 @@
-import { createEnvironment, Environment } from '../../lib/Environment';
+import { createEnvironment } from '../../lib/env';
 import { Logger } from '../../lib/logger';
-import createEchoService from '../EchoService';
+import { Environment } from '../../lib/types';
 import run from '../demoRunner';
+import createEchoService from '../EchoService';
 import createDockerizedService, { createDockerVolumeService, dockerExec } from './dockerized';
 
 function configureEnvironment(logger: Logger): Environment {

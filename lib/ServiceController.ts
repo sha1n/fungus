@@ -1,6 +1,6 @@
 import assert = require('assert');
 import EventEmitter = require('events');
-import { InternalRuntimeContext } from './Environment';
+import { InternalRuntimeContext } from './env';
 import { createLogger } from './logger';
 import { Service, ServiceId, ServiceMetadata } from './types';
 
@@ -11,7 +11,7 @@ class ServiceController extends EventEmitter {
   private startPromise: Promise<void>;
   private meta: ServiceMetadata = undefined;
 
-  constructor(readonly service: Service) {
+  constructor(private readonly service: Service) {
     super();
   }
 
@@ -71,7 +71,7 @@ class ServiceController extends EventEmitter {
       this.emit('error', e);
       throw e;
     } finally {
-      this.startPromise = undefined;
+      this.meta = undefined;
     }
   };
 
