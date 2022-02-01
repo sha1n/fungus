@@ -10,7 +10,7 @@ class InternalRuntimeContext implements RuntimeContext {
 
   constructor(readonly name: string) {}
 
-  get serviceCatalog(): ReadonlyMap<ServiceId, ServiceMetadata> {
+  get catalog(): ReadonlyMap<ServiceId, ServiceMetadata> {
     return this._serviceCatalog;
   }
 
@@ -64,7 +64,7 @@ class StoppedEnv {
           // This is critical to avoid handling errors that occur after startup
           service.removeListener('error', onError);
           ctx.register(metadata);
-          if (ctx.serviceCatalog.size === services.length) {
+          if (ctx.catalog.size === services.length) {
             resolve(ctx);
           }
         });

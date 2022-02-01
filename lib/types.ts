@@ -2,7 +2,7 @@ type ServiceId = string;
 
 type RuntimeContext = {
   readonly name: string;
-  readonly serviceCatalog: ReadonlyMap<ServiceId, ServiceMetadata>;
+  readonly catalog: ReadonlyMap<ServiceId, ServiceMetadata>;
   readonly shuttingDown: boolean;
 };
 
