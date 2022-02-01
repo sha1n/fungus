@@ -2,7 +2,7 @@ type ServiceId = string;
 
 type RuntimeContext = {
   readonly name: string;
-  readonly serviceCatalog: ReadonlyMap<ServiceId, ServiceMetadata>;
+  readonly catalog: ReadonlyMap<ServiceId, ServiceMetadata>;
   readonly shuttingDown: boolean;
 };
 
@@ -22,4 +22,10 @@ type DependencyMap = {
   [key: ServiceId]: DependencyRecord;
 };
 
-export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord };
+interface Environment {
+  readonly name: string;
+  start(): Promise<RuntimeContext>;
+  stop(): Promise<void>;
+}
+
+export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord, Environment };

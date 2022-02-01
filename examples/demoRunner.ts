@@ -1,4 +1,4 @@
-import { Environment } from '..';
+import { Environment } from '../lib/types';
 import { createLogger, Logger } from '../lib/logger';
 
 const logger = createLogger('main');
@@ -25,7 +25,7 @@ export async function run(createEnv: (logger: Logger) => Environment): Promise<v
   try {
     const ctx = await env.start();
 
-    logger.info(`environment services: ${Array.from(ctx.serviceCatalog.values()).join(', ')}`);
+    logger.info(`environment services: ${Array.from(ctx.catalog.values()).join(', ')}`);
 
     await env.stop();
     logger.info('environment stopped');

@@ -1,2 +1,2 @@
-export { Environment, createEnvironment } from './lib/Environment';
-export { Service, ServiceMetadata, ServiceId, RuntimeContext } from './lib/types';
+export { createEnvironment } from './lib/env';
+export { Service, ServiceMetadata, ServiceId, RuntimeContext, Environment } from './lib/types';
