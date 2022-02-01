@@ -1,7 +1,8 @@
-import { createEnvironment, Environment } from '../../lib/Environment';
+import { createEnvironment } from '../../lib/env';
 import { Logger } from '../../lib/logger';
 import createEchoService from '../EchoService';
 import run from '../demoRunner';
+import { Environment } from '../../lib/types';
 
 function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
