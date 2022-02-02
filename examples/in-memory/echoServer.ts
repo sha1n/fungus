@@ -1,7 +1,7 @@
 import { sleep } from '@sha1n/about-time';
 import http from 'http';
 import { AddressInfo } from 'net';
-import { createLogger } from '../lib/logger';
+import { createLogger } from '../../lib/logger';
 
 const logger = createLogger('echo-serv');
 

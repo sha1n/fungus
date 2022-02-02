@@ -1,7 +1,7 @@
 import { retryAround, simpleRetryPolicy, TimeUnit } from '@sha1n/about-time';
 import http from 'http';
-import { RuntimeContext, Service } from '..';
-import { createLogger, Logger } from '../lib/logger';
+import { RuntimeContext, Service } from '../..';
+import { createLogger, Logger } from '../../lib/logger';
 import startEchoServer from './echoServer';
 
 type HttpServiceMetadata = {
@@ -63,6 +63,7 @@ class EchoService implements Service {
         resolve(true);
       });
 
+      request.on('error', reject);
       request.setTimeout(100, () => {
         reject(new Error('Timeout'));
       });
