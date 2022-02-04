@@ -1,9 +1,10 @@
-import { retryAround, simpleRetryPolicy, TimeUnit, RetryPolicy } from '@sha1n/about-time';
+import { retryAround, RetryPolicy, simpleRetryPolicy, TimeUnit } from '@sha1n/about-time';
 import child_process from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../lib/logger';
 import { Service, ServiceMetadata } from '../../lib/types';
 
+const exitEvents = ['SIGINT', 'SIGTERM', 'uncaughtException'];
 const logger = createLogger('docker-service');
 
 type DockerContainerOptions = {
@@ -35,8 +36,10 @@ type ContainerMetadata = {
   toString: () => string;
 } & ServiceMetadata;
 
-function createDockerizedService(opts: DockerContainerOptions): Service {
+function createContainerService(opts: DockerContainerOptions): Service {
   const name = opts.name || uuid();
+  const exitHandler = async () => executeCommand(`docker rm -fv ${name}`);
+  registerExitHandlers(exitHandler);
   let started = false;
 
   return {
@@ -72,15 +75,19 @@ function createDockerizedService(opts: DockerContainerOptions): Service {
     stop: async () => {
       if (started) {
         logger.debug('stopping container %s...', name);
-        await executeCommand(`docker stop ${name}`);
+        await executeCommand(`docker stop ${name}`).finally(() => removeExitHandlers(exitHandler));
         logger.debug('container %s stopped', name);
       }
     }
   };
 }
 
-function createDockerVolumeService(opts?: DockerVolumeOptions): Service {
+function createVolumeService(opts?: DockerVolumeOptions): Service {
   const volumeName = opts?.name || uuid();
+  // This won't work if a container is attached to the volume
+  const exitHandler = async () => executeCommand(`docker volume remove --force ${volumeName}`);
+  registerExitHandlers(exitHandler);
+
   let started = false;
 
   return {
@@ -99,7 +106,7 @@ function createDockerVolumeService(opts?: DockerVolumeOptions): Service {
     stop: async () => {
       if (started && opts?.remove) {
         logger.debug('deleting volume %s...', volumeName);
-        await executeCommand(`docker volume remove --force ${volumeName}`);
+        await exitHandler().finally(() => removeExitHandlers(exitHandler));
         logger.debug('volume %s removed', volumeName);
       }
     }
@@ -161,5 +168,23 @@ async function executeCommand(cmd: string): Promise<number> {
   });
 }
 
-export { DockerContainerOptions, ContainerMetadata, DockerVolumeOptions, createDockerVolumeService, dockerExec };
-export default createDockerizedService;
+function registerExitHandlers<T>(...handlers: Array<() => Promise<T>>): void {
+  handlers.forEach(h => {
+    exitEvents.forEach(e => {
+      process.on(e, async () => {
+        await h().catch(logger.error);
+      });
+    });
+  });
+}
+
+function removeExitHandlers<T>(...handlers: Array<() => Promise<T>>): void {
+  handlers.forEach(h => {
+    exitEvents.forEach(e => {
+      process.removeListener(e, h);
+    });
+  });
+}
+
+export { DockerContainerOptions, ContainerMetadata, DockerVolumeOptions, createVolumeService, dockerExec };
+export default createContainerService;

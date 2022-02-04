@@ -3,16 +3,16 @@ import { createEnvironment } from '../../lib/env';
 import { Logger } from '../../lib/logger';
 import { Environment } from '../../lib/types';
 import run from '../demoRunner';
-import createDockerizedService, { createDockerVolumeService, dockerExec } from './dockerized';
+import createContainerService, { createVolumeService, dockerExec } from './docker';
 
 function configureEnvironment(logger: Logger): Environment {
   logger.info('configuring environment services...');
 
-  const mysqlVolumeService = createDockerVolumeService({
+  const mysqlVolumeService = createVolumeService({
     name: 'mysql-data',
     remove: true
   });
-  const mysqlService = createDockerizedService({
+  const mysqlService = createContainerService({
     image: 'mysql:8.0.28',
     name: 'mysql',
     remove: true,
@@ -32,7 +32,7 @@ function configureEnvironment(logger: Logger): Environment {
       }
     }
   });
-  const proxyService = createDockerizedService({
+  const proxyService = createContainerService({
     image: 'nginx',
     name: 'proxy',
     remove: true,
@@ -44,7 +44,7 @@ function configureEnvironment(logger: Logger): Environment {
       check: isAlive('http://localhost:8083')
     }
   });
-  const app1 = createDockerizedService({
+  const app1 = createContainerService({
     image: 'sha1n/hako',
     name: 'echo-app',
     remove: true,
@@ -56,7 +56,7 @@ function configureEnvironment(logger: Logger): Environment {
       check: isAlive('http://localhost:8081/echo')
     }
   });
-  const app2 = createDockerizedService({
+  const app2 = createContainerService({
     image: 'sha1n/dummy-loader',
     name: 'loader-app',
     remove: true,
