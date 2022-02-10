@@ -30,7 +30,7 @@ Designed to harness backend integration testing environments, `Fungus` is a simp
 
 ## Features
 - Simple and lean API surface. Very easy to adopt or experiment with. The [`Service`](./lib/types.ts) interface is all you really have to implement.
-- Easy to extend. The [`Docker`](./examples/docker/dockerized.ts) example shows how easy it is to create a generic docker based service and use it to control containers.
+- Easy to extend. The [`Docker`](./examples/docker/docker.ts) example shows how easy it is to create a generic docker based service and use it to control containers.
 - A `RuntimeContext` API gives you access to metadata that is provided by any service in your environment. This is handy when you need to configure a service based on its dependencies. For example, you use a random database port and you want your app to get it before it starts up. The same context object is passed to all the services on startup and returned by the environment start method, so you can use it from the application or test.
 
 ## Usage
