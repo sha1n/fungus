@@ -2,7 +2,7 @@ interface Identifiable {
   readonly id: string;
 }
 
-class DirectedGraph<T extends Identifiable> {
+class DGraph<T extends Identifiable> {
   private readonly nodes = new Map<string, T>();
   private readonly incomingRefs = new Map<string, Set<string>>();
   private readonly outgoingRefs = new Map<string, Set<string>>();
@@ -22,7 +22,7 @@ class DirectedGraph<T extends Identifiable> {
     this.getOutgoingRefsOf(from.id).add(to.id);
   }
 
-  isDirectAcyclic(): boolean {
+  isAcyclic(): boolean {
     const degrees = new Map<string, number>();
     this.nodes.forEach(n => degrees.set(n.id, 0));
     this.nodes.forEach(n =>
@@ -55,34 +55,24 @@ class DirectedGraph<T extends Identifiable> {
     return visitedNodeCount === this.nodes.size;
   }
 
-  reverseTopologicalSort(): Array<T> {
-    const values = new Array<T>();
-    this.dfs(this.outgoingRefs, this.incomingRefs, n => values.push(n));
-    return values;
+  *reverseTopologicalSort(): Iterable<T> {
+    yield* this.dfs(this.outgoingRefs, this.incomingRefs);
   }
 
-  topologicalSort(): Array<T> {
-    const values = new Array<T>();
-    this.dfs(this.incomingRefs, this.outgoingRefs, n => values.push(n));
-    return values;
+  *topologicalSort(): Iterable<T> {
+    yield* this.dfs(this.incomingRefs, this.outgoingRefs);
   }
 
-  getRoots(): Array<T> {
-    const roots = new Array<T>();
+  *getRoots(): Iterable<T> {
     for (const id of this.roots(this.incomingRefs)) {
-      roots.push(this.nodes.get(id));
+      yield this.nodes.get(id);
     }
-
-    return roots;
   }
 
-  getNodes(): Array<T> {
-    const nodes = new Array<T>();
+  *getNodes(): Iterable<T> {
     for (const node of this.nodes.values()) {
-      nodes.push(node);
+      yield node;
     }
-
-    return nodes;
   }
 
   private getIncomingRefsOf(nodeId: string): Set<string> {
@@ -93,30 +83,27 @@ class DirectedGraph<T extends Identifiable> {
     return getRefsOf(nodeId, this.outgoingRefs);
   }
 
-  private dfs(
-    forwardRefs: Map<string, Set<string>>,
-    backwardsRefs: Map<string, Set<string>>,
-    visit: (n: T) => void
-  ): void {
-    if (!this.isDirectAcyclic()) {
+  private *dfs(forwardRefs: Map<string, Set<string>>, backwardsRefs: Map<string, Set<string>>): Iterable<T> {
+    if (!this.isAcyclic()) {
       throw new Error('Not a DAG!');
     }
+    const nodes = this.nodes;
 
-    const stack = new Set<string>();
-    const push_children_recursively = (parent: string) => {
+    const visited = new Set<string>();
+    const push_children_recursively = function* (parent: string): Iterable<T> {
       for (const child of forwardRefs.get(parent) || []) {
-        if (!stack.has(child)) {
-          push_children_recursively(child);
-          visit(this.nodes.get(child));
-          stack.add(child);
+        if (!visited.has(child)) {
+          yield* push_children_recursively(child);
+          yield nodes.get(child);
+          visited.add(child);
         }
       }
     };
 
     for (const root of this.roots(backwardsRefs)) {
-      push_children_recursively(root);
-      visit(this.nodes.get(root));
-      stack.add(root);
+      yield* push_children_recursively(root);
+      yield nodes.get(root);
+      visited.add(root);
     }
   }
 
@@ -138,4 +125,5 @@ function getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
   return dependencies;
 }
 
-export { DirectedGraph, Identifiable };
+export { Identifiable };
+export default DGraph;

@@ -1,25 +1,25 @@
 import { v4 as uuid } from 'uuid';
-import { DirectedGraph } from './DirectedGraph';
+import DGraph from './DGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
 import { ServiceSpec, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
 
 class InternalRuntimeContext implements RuntimeContext {
-  private readonly _serviceCatalog = new Map();
+  private readonly _catalog = new Map<ServiceId, ServiceMetadata>();
   shuttingDown: boolean;
 
   constructor(readonly name: string) {}
 
   get catalog(): ReadonlyMap<ServiceId, ServiceMetadata> {
-    return this._serviceCatalog;
+    return this._catalog;
   }
 
   register(metadata: ServiceMetadata): void {
-    this._serviceCatalog.set(metadata.id, metadata);
+    this._catalog.set(metadata.id, metadata);
   }
 
   unregister(id: ServiceId): void {
-    this._serviceCatalog.delete(id);
+    this._catalog.delete(id);
   }
 }
 
@@ -155,7 +155,7 @@ class StartedEnv {
 class ServiceGraph {
   private readonly logger = createLogger('srv-graph');
 
-  private readonly graph: DirectedGraph<ServiceController> = new DirectedGraph<ServiceController>();
+  private readonly graph = new DGraph<ServiceController>();
 
   addService(service: Service): void {
     this.graph.addNode(this.getOrCreateControllerFor(service));
@@ -168,23 +168,23 @@ class ServiceGraph {
     this.logger.info('adding dependency: %s depends on %s', service.id, depController.id);
     this.graph.addEdge(depController, srvController);
 
-    if (!this.graph.isDirectAcyclic()) {
+    if (!this.graph.isAcyclic()) {
       throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
     }
     // This is required in order to allow the controller to start once all deps are started.
     srvController.addDependency(depController);
   }
 
-  getServices(): ServiceController[] {
-    return this.graph.getNodes();
+  getServices(): readonly ServiceController[] {
+    return [...this.graph.getNodes()];
   }
 
-  getBootstrapServices(): ServiceController[] {
-    return this.graph.getRoots();
+  getBootstrapServices(): readonly ServiceController[] {
+    return [...this.graph.getRoots()];
   }
 
-  getTeardownServices(): ServiceController[] {
-    return this.graph.reverseTopologicalSort();
+  getTeardownServices(): readonly ServiceController[] {
+    return [...this.graph.reverseTopologicalSort()];
   }
 
   private getOrCreateControllerFor(service: Service): ServiceController {
