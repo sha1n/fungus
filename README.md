@@ -44,29 +44,32 @@ const configService = ...;
 const authService = ...;
 const appService = ...;
 
-// create an environment from a dependency map (keys names don't matter)
+// create an environment from a list of services and dependencies between them
 const env = createEnvironment(
-  {
-    ConfigService: {
+  [
+    {
       service: configService,
       dependsOn: [storageService, mqService]
     },
-    App: {
+    {
       service: appService,
       dependsOn: [configService, authService]
     },
-    AuthService: {
+    {
       service: authService,
       dependsOn: [configService]
     }
-  },
-  'my-env'
+  ],
+  { name: 'my-env' }
 );
 
-// start all the services in order (topological)
+// start all the services. Services start according to their level in the dependency graph and in parallel where possible (topological)
 const context = await env.start();
-const configServiceUrl = context.catalog.get('my-config-service-id').url;
-    
+
+// query the context for metadata returned by your services
+const yourConfigServiceMetadata = context.catalog.get('my-config-service-id') as YourConfigServiceMetadata;
+const configServiceUrl = yourConfigServiceMetadata.url;
+
   ...
 
 // finally - stop all service in reverse order

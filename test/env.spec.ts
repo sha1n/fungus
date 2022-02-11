@@ -9,22 +9,22 @@ describe('Environment', () => {
     const [service2] = aServiceMock();
 
     expect(() =>
-      createEnvironment({
-        1: { service: service1, dependsOn: [service2] },
-        2: { service: service2, dependsOn: [service1] }
-      })
+      createEnvironment([
+        { service: service1, dependsOn: [service2] },
+        { service: service2, dependsOn: [service1] }
+      ])
     ).toThrowError();
   });
 
   test('should assign a default name if non is specified', () => {
-    const env = createEnvironment({});
+    const env = createEnvironment([]);
 
     expect(env.name).toBeDefined();
   });
 
   test('should assign name', () => {
     const expected = uuid();
-    const env = createEnvironment({}, expected);
+    const env = createEnvironment([], { name: expected });
 
     expect(env.name).toEqual(expected);
   });
@@ -37,11 +37,11 @@ describe('Environment', () => {
       const [service4, metadata4] = aServiceMock();
       const [service5, metadata5] = aServiceMock();
 
-      const env = createEnvironment({
-        2: { service: service2, dependsOn: [service1, service3, service4] },
-        4: { service: service4, dependsOn: [service3] },
-        5: { service: service5 }
-      });
+      const env = createEnvironment([
+        { service: service2, dependsOn: [service1, service3, service4] },
+        { service: service4, dependsOn: [service3] },
+        { service: service5 }
+      ]);
 
       const ctx = await env.start();
 
@@ -67,12 +67,12 @@ describe('Environment', () => {
       const [service4] = aServiceMock();
       const [service5] = aServiceMock();
 
-      const env = createEnvironment({
-        1: { service: service1, dependsOn: [service2] },
-        2: { service: service2, dependsOn: [service3] },
-        3: { service: service3, dependsOn: [service4] },
-        4: { service: service4, dependsOn: [service5] }
-      });
+      const env = createEnvironment([
+        { service: service1, dependsOn: [service2] },
+        { service: service2, dependsOn: [service3] },
+        { service: service3, dependsOn: [service4] },
+        { service: service4, dependsOn: [service5] }
+      ]);
 
       await expect(env.start()).toReject();
 
@@ -92,9 +92,7 @@ describe('Environment', () => {
     test('should reject if the environment is already started', async () => {
       const [service] = aServiceMock();
 
-      const env = createEnvironment({
-        1: { service }
-      });
+      const env = createEnvironment([{ service }]);
       await env.start();
 
       await expect(env.start()).rejects.toThrow(/Already started/);
@@ -110,10 +108,10 @@ describe('Environment', () => {
       const [service3] = aServiceMock();
       const [service4] = aServiceMock();
 
-      const env = createEnvironment({
-        2: { service: service2, dependsOn: [service1, service3, service4] },
-        4: { service: service4, dependsOn: [service3] }
-      });
+      const env = createEnvironment([
+        { service: service2, dependsOn: [service1, service3, service4] },
+        { service: service4, dependsOn: [service3] }
+      ]);
 
       await env.start();
       await env.stop();
@@ -135,11 +133,11 @@ describe('Environment', () => {
       const [service3] = aServiceMock();
       const [service4] = aServiceMock();
 
-      const env = createEnvironment({
-        4: { service: service4, dependsOn: [service3] },
-        3: { service: service3, dependsOn: [service2] },
-        2: { service: service2, dependsOn: [service1] }
-      });
+      const env = createEnvironment([
+        { service: service4, dependsOn: [service3] },
+        { service: service3, dependsOn: [service2] },
+        { service: service2, dependsOn: [service1] }
+      ]);
 
       await env.start();
       await expect(env.stop()).toReject();
@@ -151,7 +149,7 @@ describe('Environment', () => {
     });
 
     test('should reject if the env is not started', async () => {
-      const env = createEnvironment({});
+      const env = createEnvironment([]);
 
       await expect(env.stop()).rejects.toThrow(/Not started/);
     });
