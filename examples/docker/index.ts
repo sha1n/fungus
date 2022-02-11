@@ -70,21 +70,21 @@ function configureEnvironment(logger: Logger): Environment {
   });
 
   return createEnvironment(
-    {
-      MySQL: {
+    [
+      {
         service: mysqlService,
         dependsOn: [mysqlVolumeService]
       },
-      AppService1: {
+      {
         service: app1,
         dependsOn: [mysqlService, proxyService]
       },
-      AppService2: {
+      {
         service: app2,
         dependsOn: [mysqlService, app1]
       }
-    },
-    'demo-env'
+    ],
+    { name: 'demo-env' }
   );
 }
 

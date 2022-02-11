@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { DirectedGraph } from './DirectedGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
-import { DependencyMap, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
+import { ServiceSpec, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
 
 class InternalRuntimeContext implements RuntimeContext {
   private readonly _serviceCatalog = new Map();
@@ -33,7 +33,7 @@ class StoppedEnv {
   private readonly ctx: InternalRuntimeContext;
   private readonly servicesGraph: ServiceGraph;
 
-  constructor(private readonly map: DependencyMap, name: string) {
+  constructor(private readonly specs: readonly ServiceSpec[], name: string) {
     this.logger = createLogger(name);
     this.ctx = new InternalRuntimeContext(name);
     this.servicesGraph = this.init();
@@ -83,7 +83,7 @@ class StoppedEnv {
   }
 
   private startedEnv(): StartedEnv {
-    return new StartedEnv(this.servicesGraph, this.map, this.ctx.name);
+    return new StartedEnv(this.servicesGraph, this.specs, this.ctx.name);
   }
 
   private init(): ServiceGraph {
@@ -97,9 +97,8 @@ class StoppedEnv {
       });
     };
 
-    for (const key of Object.keys(this.map)) {
-      const record = this.map[key];
-      register(record.service, record.dependsOn);
+    for (const spec of this.specs) {
+      register(spec.service, spec.dependsOn);
     }
 
     return servicesGraph;
@@ -110,7 +109,11 @@ class StartedEnv {
   private readonly logger: Logger;
   private readonly ctx: InternalRuntimeContext;
 
-  constructor(private readonly servicesGraph: ServiceGraph, private readonly map: DependencyMap, name: string) {
+  constructor(
+    private readonly servicesGraph: ServiceGraph,
+    private readonly specs: readonly ServiceSpec[],
+    name: string
+  ) {
     this.logger = createLogger(name);
     this.ctx = new InternalRuntimeContext(name);
   }
@@ -122,7 +125,7 @@ class StartedEnv {
   async stop(): Promise<StoppedEnv> {
     await this.doStop(this.ctx);
 
-    return new StoppedEnv(this.map, this.ctx.name);
+    return new StoppedEnv(this.specs, this.ctx.name);
   }
 
   private async doStop(ctx: InternalRuntimeContext): Promise<void> {
@@ -189,13 +192,13 @@ class ServiceGraph {
   }
 }
 
-function createEnvironment(map: DependencyMap, name?: string): Environment {
-  const envName = name || `env-${uuid()}`;
-  const stoppedEnv = new StoppedEnv(map, name);
+function createEnvironment(specs: readonly ServiceSpec[], options?: { name?: string }): Environment {
+  const name = options?.name || `env-${uuid()}`;
+  const stoppedEnv = new StoppedEnv(specs, name);
   let env: EnvState = stoppedEnv;
 
   return {
-    name: envName,
+    name,
 
     start: async () => {
       const [ctx, startedEnv] = await env.start();

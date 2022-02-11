@@ -16,11 +16,10 @@ interface Service {
   stop(ctx: RuntimeContext): Promise<void>;
 }
 
-type DependencyRecord = { service: Service; dependsOn?: Service[] };
-
-type DependencyMap = {
-  [key: ServiceId]: DependencyRecord;
-};
+interface ServiceSpec {
+  service: Service;
+  dependsOn?: Service[];
+}
 
 interface Environment {
   readonly name: string;
@@ -28,4 +27,4 @@ interface Environment {
   stop(): Promise<void>;
 }
 
-export { ServiceId, RuntimeContext, ServiceMetadata, Service, DependencyMap, DependencyRecord, Environment };
+export { type ServiceSpec, Environment, Service, ServiceId, ServiceMetadata, RuntimeContext };

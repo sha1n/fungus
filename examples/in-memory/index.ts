@@ -14,21 +14,21 @@ function configureEnvironment(logger: Logger): Environment {
   const appService = createEchoService('app-srv');
 
   return createEnvironment(
-    {
-      ConfigService: {
+    [
+      {
         service: configService,
         dependsOn: [storageService, mqService]
       },
-      App: {
+      {
         service: appService,
         dependsOn: [configService, authService]
       },
-      AuthService: {
+      {
         service: authService,
         dependsOn: [configService]
       }
-    },
-    'demo-env'
+    ],
+    { name: 'demo-env' }
   );
 }
 
