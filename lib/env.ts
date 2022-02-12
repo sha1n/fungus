@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import DGraph from './DGraph';
+import DAGraph from './DAGraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
 import { ServiceSpec, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
@@ -155,7 +155,7 @@ class StartedEnv {
 class ServiceGraph {
   private readonly logger = createLogger('srv-graph');
 
-  private readonly graph = new DGraph<ServiceController>();
+  private readonly graph = new DAGraph<ServiceController>();
 
   addService(service: Service): void {
     this.graph.addNode(this.getOrCreateControllerFor(service));
@@ -168,23 +168,20 @@ class ServiceGraph {
     this.logger.info('adding dependency: %s depends on %s', service.id, depController.id);
     this.graph.addEdge(depController, srvController);
 
-    if (!this.graph.isAcyclic()) {
-      throw new Error(`the dependency from ${service.id} to ${dependency.id} forms a cycle.`);
-    }
     // This is required in order to allow the controller to start once all deps are started.
     srvController.addDependency(depController);
   }
 
   getServices(): readonly ServiceController[] {
-    return [...this.graph.getNodes()];
+    return [...this.graph.nodes()];
   }
 
   getBootstrapServices(): readonly ServiceController[] {
-    return [...this.graph.getRoots()];
+    return [...this.graph.roots()];
   }
 
   getTeardownServices(): readonly ServiceController[] {
-    return [...this.graph.reverseTopologicalSort()];
+    return [...this.graph.reverse().topologicalSort()];
   }
 
   private getOrCreateControllerFor(service: Service): ServiceController {
