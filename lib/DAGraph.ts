@@ -2,26 +2,41 @@ interface Identifiable {
   readonly id: string;
 }
 
-class DAGraph<T extends Identifiable> {
-  private readonly nodesById = new Map<string, T>();
-  private readonly incomingRefs = new Map<string, Set<string>>();
-  private readonly outgoingRefs = new Map<string, Set<string>>();
+class Node<T extends Identifiable> {
+  constructor(readonly data: T, readonly dependencies = new Set<string>()) {}
 
-  addNode(node: T): DAGraph<T> {
-    this.nodesById.set(node.id, node);
+  get id(): string {
+    return this.data.id;
+  }
+}
+
+class DAGraph<T extends Identifiable> {
+  private readonly nodesById = new Map<string, Node<T>>();
+
+  /**
+   * Adds the specified identifiable node to the graph.
+   */
+  addNode(data: T): DAGraph<T> {
+    this.ensureNode(data);
 
     return this;
   }
 
-  getNode(id: string): T {
-    return this.nodesById.get(id);
+  /**
+   * @returns the data node identified by the specified id if found, else returns undefined.
+   */
+  getNode(id: string): T | undefined {
+    return this.nodesById.get(id)?.data;
   }
 
+  /**
+   * Adds an edge pointing from 'from' to 'to'.
+   */
   addEdge(from: T, to: T): DAGraph<T> {
-    this.addNode(from);
-    this.addNode(to);
-    this.getIncomingRefsOf(to.id).add(from.id);
-    this.getOutgoingRefsOf(from.id).add(to.id);
+    const fromNode = this.ensureNode(from);
+    const toNode = this.ensureNode(to);
+
+    toNode.dependencies.add(fromNode.id);
 
     if (!this.isAcyclic()) {
       throw new Error(`[${from.id}] -> [${to.id}] form a cycle`);
@@ -30,51 +45,97 @@ class DAGraph<T extends Identifiable> {
     return this;
   }
 
+  /**
+   * Returns a generator that returns all the nodes in topological order.
+   * Implements a depth-first-search algorithm.
+   */
   *topologicalSort(): Iterable<T> {
-    yield* this.dfs(this.incomingRefs, this.outgoingRefs);
-  }
+    const nodesById = this.nodesById;
 
-  *roots(): Iterable<T> {
-    for (const id of this.rootIds(this.incomingRefs)) {
-      yield this.nodesById.get(id);
+    const visited = new Set<string>();
+    const dependenciesOf = function* (node: Node<T>): Iterable<T> {
+      for (const child of node.dependencies || []) {
+        if (!visited.has(child)) {
+          yield* dependenciesOf(nodesById.get(child));
+          yield nodesById.get(child).data;
+          visited.add(child);
+        }
+      }
+    };
+
+    for (const node of nodesById.values()) {
+      if (!visited.has(node.id)) {
+        yield* dependenciesOf(node);
+        yield node.data;
+        visited.add(node.id);
+      }
     }
   }
 
+  /**
+   * A generator that returns the traverse roots of this graph.
+   */
+  *roots(): Iterable<T> {
+    for (const node of this.nodesById.values()) {
+      if (node.dependencies.size === 0) {
+        yield node.data;
+      }
+    }
+  }
+
+  /**
+   * A generator that returns all the nodes in the this graph.
+   */
   *nodes(): Iterable<T> {
     for (const node of this.nodesById.values()) {
-      yield node;
+      yield node.data;
     }
   }
 
+  /**
+   * Returns a graph with the same edges pointing in the opposite direction.
+   *
+   * @returns a DAGraph
+   */
   reverse(): DAGraph<T> {
     const reverseGraph = new DAGraph<T>();
 
-    for (const node of this.nodes()) {
-      reverseGraph.addNode(node);
-    }
-
-    for (const [id, refs] of this.incomingRefs) {
-      for (const refId of refs) {
-        reverseGraph.addEdge(reverseGraph.getNode(id), reverseGraph.getNode(refId));
+    for (const node of this.nodesById.values()) {
+      reverseGraph.addNode(node.data);
+      for (const dependency of node.dependencies) {
+        const depData = this.nodesById.get(dependency).data;
+        reverseGraph.addNode(depData);
+        reverseGraph.addEdge(node.data, depData);
       }
     }
 
     return reverseGraph;
   }
 
+  private ensureNode(data: T): Node<T> {
+    let node = this.nodesById.get(data.id);
+    if (node) {
+      return node;
+    }
+
+    node = new Node(data);
+    this.nodesById.set(data.id, node);
+    return node;
+  }
+
   private isAcyclic(): boolean {
     const degrees = new Map<string, number>();
-    this.nodesById.forEach(n => degrees.set(n.id, 0));
-    this.nodesById.forEach(n =>
-      this.getIncomingRefsOf(n.id).forEach(childId => {
-        degrees.set(childId, degrees.get(childId) + 1);
+    this.nodesById.forEach(node => degrees.set(node.id, 0));
+    this.nodesById.forEach(node =>
+      node.dependencies.forEach(child => {
+        degrees.set(child, degrees.get(child) + 1);
       })
     );
 
     const queue = new Array<string>();
-    this.nodesById.forEach(n => {
-      if (degrees.get(n.id) === 0) {
-        queue.push(n.id);
+    this.nodesById.forEach(node => {
+      if (degrees.get(node.id) === 0) {
+        queue.push(node.id);
       }
     });
 
@@ -84,62 +145,16 @@ class DAGraph<T extends Identifiable> {
       const [nodeId] = queue.splice(0, 1);
       visitedNodeCount += 1;
 
-      this.getIncomingRefsOf(nodeId).forEach(childId => {
-        degrees.set(childId, degrees.get(childId) - 1);
-        if (degrees.get(childId) === 0) {
-          queue.push(childId);
+      this.nodesById.get(nodeId).dependencies.forEach(child => {
+        degrees.set(child, degrees.get(child) - 1);
+        if (degrees.get(child) === 0) {
+          queue.push(child);
         }
       });
     }
 
     return visitedNodeCount === this.nodesById.size;
   }
-
-  private getIncomingRefsOf(nodeId: string): Set<string> {
-    return getRefsOf(nodeId, this.incomingRefs);
-  }
-
-  private getOutgoingRefsOf(nodeId: string): Set<string> {
-    return getRefsOf(nodeId, this.outgoingRefs);
-  }
-
-  private *dfs(forwardRefs: Map<string, Set<string>>, backwardsRefs: Map<string, Set<string>>): Iterable<T> {
-    const nodes = this.nodesById;
-
-    const visited = new Set<string>();
-    const push_children_recursively = function* (parent: string): Iterable<T> {
-      for (const child of forwardRefs.get(parent) || []) {
-        if (!visited.has(child)) {
-          yield* push_children_recursively(child);
-          yield nodes.get(child);
-          visited.add(child);
-        }
-      }
-    };
-
-    for (const root of this.rootIds(backwardsRefs)) {
-      yield* push_children_recursively(root);
-      yield nodes.get(root);
-      visited.add(root);
-    }
-  }
-
-  private *rootIds(refs: Map<string, Set<string>>): Iterable<string> {
-    for (const n of this.nodesById.values()) {
-      if (!refs.has(n.id) || refs.get(n.id).size === 0) {
-        yield n.id;
-      }
-    }
-  }
-}
-
-function getRefsOf(id: string, refsMap: Map<string, Set<string>>): Set<string> {
-  let dependencies = refsMap.get(id);
-  if (!dependencies) {
-    dependencies = new Set<string>();
-    refsMap.set(id, dependencies);
-  }
-  return dependencies;
 }
 
 export { Identifiable };
