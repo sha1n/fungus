@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import DAGraph from './DAGraph';
+import createDAG from '@sha1n/dagraph';
 import { createLogger, Logger } from './logger';
 import { ServiceController } from './ServiceController';
 import { ServiceSpec, Environment, RuntimeContext, Service, ServiceId, ServiceMetadata } from './types';
@@ -155,7 +155,7 @@ class StartedEnv {
 class ServiceGraph {
   private readonly logger = createLogger('srv-graph');
 
-  private readonly graph = new DAGraph<ServiceController>();
+  private readonly graph = createDAG<ServiceController>();
 
   addService(service: Service): void {
     this.graph.addNode(this.getOrCreateControllerFor(service));
