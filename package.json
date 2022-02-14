@@ -28,7 +28,7 @@
     "prepublish": "yarn run build"
   },
   "dependencies": {
-    "@sha1n/dagraph": "^0.0.1",
+    "@sha1n/dagraph": "^0.0.2",
     "@types/debug": "^4.1.7",
     "uuid": "^8.3.2"
   },
