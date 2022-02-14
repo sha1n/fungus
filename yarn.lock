@@ -556,10 +556,10 @@
   resolved "https://registry.yarnpkg.com/@sha1n/about-time/-/about-time-0.0.7.tgz#085762c4fc16c3433fe6a9fd51f3e000d4bc337d"
   integrity sha512-WgOYxMvM4/GqvUHwKDJ7xWRbEqPnWSmob9VFfBDL1rQCq02JdcDvgVxNSrCuLAq7Q3v/WcsmcDu+OpDU36Likg==
 
-"@sha1n/dagraph@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@sha1n/dagraph/-/dagraph-0.0.1.tgz#836816fc5a04da385d6ae50be77f4b9361b39467"
-  integrity sha512-xa4Xs8qxYBvu/KuM+f4OI1bu1Quz5+mmmnd1EYVrT7sPG0QVlICx0xj83n4KS8e1wSFI/3lsWwEOkMMavnJWOQ==
+"@sha1n/dagraph@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@sha1n/dagraph/-/dagraph-0.0.2.tgz#1999cb0db422ceb76ca28797f57b9022d0d4f1e7"
+  integrity sha512-nhcngJM0S1CYUCsnvv3TAKY83uh2Jx3kw+yg3L7bhDdnWJzLXb4SjI87DpljV9Fns2Pt6J+Rr6EcRZ+yDWxMNQ==
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"
