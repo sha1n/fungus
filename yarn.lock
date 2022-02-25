@@ -779,20 +779,20 @@ __metadata:
     "@typescript-eslint/parser": ^5.3.0
     colors: ^1.4.0
     eslint: ^8.9.0
-    eslint-config-prettier: ^8.3.0
-    eslint-plugin-import: ^2.25.2
-    eslint-plugin-jest: ^26.0.0
+    eslint-config-prettier: ^8.4.0
+    eslint-plugin-import: ^2.25.4
+    eslint-plugin-jest: ^26.1.1
     eslint-plugin-no-floating-promise: ^1.0.2
     eslint-plugin-node: ^11.1.0
     eslint-plugin-prettier: ^4.0.0
     eslint-plugin-unused-imports: ^2.0.0
-    jest: ^27.2.4
+    jest: ^27.5.1
     jest-extended: ^2.0.0
-    jest-html-reporters: ^3.0.4
+    jest-html-reporters: ^3.0.5
     jest-summary-reporter: ^0.0.2
-    prettier: ^2.4.1
-    ts-jest: ^27.0.5
-    ts-node: ^10.4.0
+    prettier: ^2.5.1
+    ts-jest: ^27.1.3
+    ts-node: ^10.5.0
     typescript: ^4.5.5
     uuid: ^8.3.2
   languageName: unknown
@@ -1488,17 +1488,17 @@ __metadata:
   linkType: hard
 
 "browserslist@npm:^4.17.5":
-  version: 4.19.1
-  resolution: "browserslist@npm:4.19.1"
+  version: 4.19.3
+  resolution: "browserslist@npm:4.19.3"
   dependencies:
-    caniuse-lite: ^1.0.30001286
-    electron-to-chromium: ^1.4.17
+    caniuse-lite: ^1.0.30001312
+    electron-to-chromium: ^1.4.71
     escalade: ^3.1.1
-    node-releases: ^2.0.1
+    node-releases: ^2.0.2
     picocolors: ^1.0.0
   bin:
     browserslist: cli.js
-  checksum: c0777fd483691638fd6801e16c9d809e1d65f6d2b06db2e806654be51045cbab1452a89841a2c5caea2cbe19d621b4f1d391cffbb24512aa33280039ab345875
+  checksum: c28958313dd17f345dd6e26379cc863126cd7d855588e57a1ed9e552a1135d64f05ec57063b48fff0d94a9b785bd248e9472c2d63ce8460ca56fc2444f5a1e66
   languageName: node
   linkType: hard
 
@@ -1584,7 +1584,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001286":
+"caniuse-lite@npm:^1.0.30001312":
   version: 1.0.30001312
   resolution: "caniuse-lite@npm:1.0.30001312"
   checksum: 753fb9ea1e02e999430b323a71b5acab5120f3b5fc0161b01669f54a3ef5c5296240b6ae9b79b12a3742e3aed216aa9ee3d5398a23c16d08625ccd376b79545d
@@ -1956,10 +1956,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-to-chromium@npm:^1.4.17":
-  version: 1.4.71
-  resolution: "electron-to-chromium@npm:1.4.71"
-  checksum: ecb2546eed6b0e95003d787c259de730f32e2f5c0fa2acb27069c0cd21378cbc2a6c7516f4ec677a5960db4e180644f87ed91a729825a238454e31e4e74617db
+"electron-to-chromium@npm:^1.4.71":
+  version: 1.4.73
+  resolution: "electron-to-chromium@npm:1.4.73"
+  checksum: 8a76418455bb697a4a3488a8a880fd2573bf8db4e007b683daadba9b9c12c092f53829a0d6a3e4460b008e9eb7ee1eddc219bf01f358e47c2d00175945f3cfb9
   languageName: node
   linkType: hard
 
@@ -2095,14 +2095,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-prettier@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "eslint-config-prettier@npm:8.3.0"
+"eslint-config-prettier@npm:^8.4.0":
+  version: 8.4.0
+  resolution: "eslint-config-prettier@npm:8.4.0"
   peerDependencies:
     eslint: ">=7.0.0"
   bin:
     eslint-config-prettier: bin/cli.js
-  checksum: df4cea3032671995bb5ab07e016169072f7fa59f44a53251664d9ca60951b66cdc872683b5c6a3729c91497c11490ca44a79654b395dd6756beb0c3903a37196
+  checksum: ee8dc343f1fed15dc0658e190a966cc23644477f2331a7f56ae2bb79dd74892e3cde8ea5c142e7a3329a8291a1de041e13ca96e54d0c85ff4a2aba13390c5f10
   languageName: node
   linkType: hard
 
@@ -2138,7 +2138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.25.2":
+"eslint-plugin-import@npm:^2.25.4":
   version: 2.25.4
   resolution: "eslint-plugin-import@npm:2.25.4"
   dependencies:
@@ -2161,7 +2161,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jest@npm:^26.0.0":
+"eslint-plugin-jest@npm:^26.1.1":
   version: 26.1.1
   resolution: "eslint-plugin-jest@npm:26.1.1"
   dependencies:
@@ -3446,7 +3446,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-html-reporters@npm:^3.0.4":
+"jest-html-reporters@npm:^3.0.5":
   version: 3.0.5
   resolution: "jest-html-reporters@npm:3.0.5"
   dependencies:
@@ -3740,7 +3740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^27.2.4":
+"jest@npm:^27.5.1":
   version: 27.5.1
   resolution: "jest@npm:27.5.1"
   dependencies:
@@ -4236,7 +4236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-releases@npm:^2.0.1":
+"node-releases@npm:^2.0.2":
   version: 2.0.2
   resolution: "node-releases@npm:2.0.2"
   checksum: da858bf86b4d512842379749f5a5e4196ddab05ba18ffcf29f05bf460beceaca927f070f4430bb5046efec18941ddbc85e4c5fdbb83afc28a38dd6069a2f255e
@@ -4565,7 +4565,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.4.1":
+"prettier@npm:^2.5.1":
   version: 2.5.1
   resolution: "prettier@npm:2.5.1"
   bin:
@@ -5181,7 +5181,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^27.0.5":
+"ts-jest@npm:^27.1.3":
   version: 27.1.3
   resolution: "ts-jest@npm:27.1.3"
   dependencies:
@@ -5215,7 +5215,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.4.0":
+"ts-node@npm:^10.5.0":
   version: 10.5.0
   resolution: "ts-node@npm:10.5.0"
   dependencies:
