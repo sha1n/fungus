@@ -18,13 +18,12 @@
   ],
   "scripts": {
     "clean": "rm -rf ./dist",
-    "prebuild": "yarn run clean",
     "build": "tsc",
-    "test": "jest --coverage",
-    "docker-demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples/docker",
-    "simple-demo": "DEMO=1 DEBUG=* yarn run ts-node ./examples/in-memory",
+    "jest": "jest --coverage",
     "lint": "eslint --fix --ext .js,.ts .",
-    "posttest": "yarn run lint",
+    "test": "run jest && run lint",
+    "docker-demo": "DEMO='1' DEBUG='*' yarn run ts-node ./examples/docker",
+    "simple-demo": "DEMO='1' DEBUG='*' yarn run ts-node ./examples/in-memory",
     "prepublish": "yarn run build"
   },
   "dependencies": {
