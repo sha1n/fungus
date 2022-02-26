@@ -750,10 +750,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sha1n/about-time@npm:^0.0.7":
-  version: 0.0.7
-  resolution: "@sha1n/about-time@npm:0.0.7"
-  checksum: 4347ab58fcbb58e47cd211ff113e156a58b6300ebd810404c1969052aef102a11dc9e7ea6d8303bde19e1bff366403e3dc991e7481c446d45507aab8efcd3f67
+"@sha1n/about-time@npm:^0.0.10":
+  version: 0.0.10
+  resolution: "@sha1n/about-time@npm:0.0.10"
+  checksum: e8c3cf901bcc2adf818d599182c503215ca3367970f2f41bb8289021a4c89e490d915783030bba9b95000811d7e52bdc4cfea84eac05c89c26f2524a12d47503
   languageName: node
   linkType: hard
 
@@ -768,7 +768,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sha1n/fungus@workspace:."
   dependencies:
-    "@sha1n/about-time": ^0.0.7
+    "@sha1n/about-time": ^0.0.10
     "@sha1n/dagraph": ^0.0.2
     "@types/debug": ^4.1.7
     "@types/jest": ^27.0.2

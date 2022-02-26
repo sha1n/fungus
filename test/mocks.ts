@@ -42,7 +42,7 @@ class ServiceMock implements Service {
       return Promise.reject(new StartError('synthetic-start-error'));
     }
 
-    sleep(10, TimeUnit.Milliseconds);
+    sleep(10, { units: TimeUnit.Milliseconds });
     return Promise.resolve({ id: this.id });
   }
 
