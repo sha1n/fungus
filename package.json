@@ -24,7 +24,7 @@
     "test": "run jest && run lint",
     "docker-demo": "DEMO='1' DEBUG='*' yarn run ts-node ./examples/docker",
     "simple-demo": "DEMO='1' DEBUG='*' yarn run ts-node ./examples/in-memory",
-    "prepublish": "yarn run build"
+    "prepare": "yarn run build"
   },
   "dependencies": {
     "@sha1n/dagraph": "^0.0.2",
