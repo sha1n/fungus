@@ -157,7 +157,7 @@ function aSlowStartingService(time: number, units: TimeUnit): Service & { finish
 
   const service = {
     start: async () => {
-      await sleep(time, units);
+      await sleep(time, { units });
       service.finishedStartup = true;
       return {
         id
