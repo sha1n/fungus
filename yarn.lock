@@ -747,10 +747,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sha1n/dagraph@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "@sha1n/dagraph@npm:0.0.2"
-  checksum: d49f68c058a82cca4f48e52089bce0a6e70f2789f7dc3dd5183b56e5e07b02c59bb83771f6a4cf8f40a4ccb98e0007f622352b98bc7f24a010b7eda8be3afd0d
+"@sha1n/dagraph@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "@sha1n/dagraph@npm:0.0.4"
+  checksum: 407cb4d7b73bdd35524db7ff88395a0bf1b916318c0eb3f7aed2a7521f66d280c5469ad7420f989e61869da7f44cfc1b66d0a3e2eb6857629df69ed73e6495ef
   languageName: node
   linkType: hard
 
@@ -759,7 +759,7 @@ __metadata:
   resolution: "@sha1n/fungus@workspace:."
   dependencies:
     "@sha1n/about-time": ^0.0.12
-    "@sha1n/dagraph": ^0.0.2
+    "@sha1n/dagraph": ^0.0.4
     "@types/debug": ^4.1.7
     "@types/jest": ^27.0.2
     "@types/node": ^17.0.13
@@ -783,7 +783,7 @@ __metadata:
     prettier: ^2.6.2
     ts-jest: ^27.1.4
     ts-node: ^10.7.0
-    typescript: ^4.6.3
+    typescript: ~4.0.0
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -5389,23 +5389,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.6.3":
-  version: 4.6.3
-  resolution: "typescript@npm:4.6.3"
+"typescript@npm:~4.0.0":
+  version: 4.0.8
+  resolution: "typescript@npm:4.0.8"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 255bb26c8cb846ca689dd1c3a56587af4f69055907aa2c154796ea28ee0dea871535b1c78f85a6212c77f2657843a269c3a742d09d81495b97b914bf7920415b
+  checksum: ed3869f1001a1d3609bddaea3e53147dafc5ad5dc70dd836ae74a8a954e5000a7245448eb98923077be0d3953677d413303f7cdc52ccca9589c664d4060c00a7
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>":
-  version: 4.6.3
-  resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=bda367"
+"typescript@patch:typescript@~4.0.0#~builtin<compat/typescript>":
+  version: 4.0.8
+  resolution: "typescript@patch:typescript@npm%3A4.0.8#~builtin<compat/typescript>::version=4.0.8&hash=bda367"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 6bf45caf847062420592e711bc9c28bf5f9a9a7fa8245343b81493e4ededae33f1774009d1234d911422d1646a2c839f44e1a23ecb111b40a60ac2ea4c1482a8
+  checksum: 700e29f13204ee32838125e5239dff34257abea7589600c797ae1f114dea7b297d4268baa830957beb4422d90a9eea5cdf04ad34ad24b3873ee2997620b65990
   languageName: node
   linkType: hard
 

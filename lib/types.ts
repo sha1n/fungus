@@ -27,4 +27,4 @@ interface Environment {
   stop(): Promise<void>;
 }
 
-export { type ServiceSpec, Environment, Service, ServiceId, ServiceMetadata, RuntimeContext };
+export type { ServiceSpec, Environment, Service, ServiceId, ServiceMetadata, RuntimeContext };
