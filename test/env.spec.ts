@@ -13,7 +13,7 @@ describe('Environment', () => {
         { service: service1, dependsOn: [service2] },
         { service: service2, dependsOn: [service1] }
       ])
-    ).toThrowError();
+    ).toThrow();
   });
 
   test('should assign a default name if non is specified', () => {
