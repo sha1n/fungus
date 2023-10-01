@@ -18,3 +18,5 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: ${{ steps.coverage.outputs.report }}
+          github-token: ${{ secrets.SECRET_TOKEN }}
+
