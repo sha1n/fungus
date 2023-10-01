@@ -8,7 +8,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ArtiomTr/jest-coverage-report-action@v2
         id: coverage
         with:
@@ -18,3 +18,5 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: ${{ steps.coverage.outputs.report }}
+          github-token: ${{ secrets.SECRET_TOKEN }}
+
