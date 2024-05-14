@@ -951,10 +951,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sha1n/dagraph@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "@sha1n/dagraph@npm:0.0.4"
-  checksum: 407cb4d7b73bdd35524db7ff88395a0bf1b916318c0eb3f7aed2a7521f66d280c5469ad7420f989e61869da7f44cfc1b66d0a3e2eb6857629df69ed73e6495ef
+"@sha1n/dagraph@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "@sha1n/dagraph@npm:0.0.5"
+  checksum: 6e2fef28ec5ef6368f0a1509127f99757efcde75d5a8c2c83ad14283c314c0a859818cc3c1c0a89046fb0566b507e1286b9100979c4963374a1e66fc454a5da1
   languageName: node
   linkType: hard
 
@@ -963,7 +963,7 @@ __metadata:
   resolution: "@sha1n/fungus@workspace:."
   dependencies:
     "@sha1n/about-time": ^0.0.13
-    "@sha1n/dagraph": ^0.0.4
+    "@sha1n/dagraph": ^0.0.5
     "@types/debug": ^4.1.7
     "@types/jest": ^27.0.2
     "@types/node": ^17.0.13
