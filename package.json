@@ -5,9 +5,12 @@
   "repository": "https://github.com/sha1n/fungus",
   "author": "Shai Nagar",
   "license": "MIT",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
+  "exports": [
+    "./dist/index.js",
+    "./dist/types/index.d.ts"
+  ],
   "main": "./dist",
-  "exports": "./dist/index.js",
   "keywords": [
     "service",
     "controller",
