@@ -1,6 +1,6 @@
 {
   "name": "@sha1n/fungus",
-  "version": "0.0.14",
+  "version": "0.1.0",
   "description": "A dependency based service graph controller library",
   "repository": "https://github.com/sha1n/fungus",
   "author": "Shai Nagar",
