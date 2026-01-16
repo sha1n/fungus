@@ -33,7 +33,11 @@ class ServiceMock implements Service {
   public startIndex = NaN;
   public stopIndex = NaN;
 
-  constructor(readonly id: string, readonly failOnStart?: boolean, readonly failOnStop?: boolean) {}
+  constructor(
+    readonly id: string,
+    readonly failOnStart?: boolean,
+    readonly failOnStop?: boolean
+  ) { }
 
   async start(): Promise<ServiceMetadata> {
     this.startIndex = ServiceMock.startSequence++;
@@ -42,7 +46,7 @@ class ServiceMock implements Service {
       return Promise.reject(new StartError('synthetic-start-error'));
     }
 
-    sleep(10, { units: TimeUnit.Milliseconds });
+    await sleep(10, { units: TimeUnit.Milliseconds });
     return Promise.resolve({ id: this.id });
   }
 

@@ -1,7 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "ES2022",
     "module": "commonjs",
     "moduleResolution": "node",
     "declarationDir": "./dist/types",
@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "experimentalDecorators":true,
+    "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictFunctionTypes": true,
     "declaration": true,
@@ -24,6 +24,6 @@
   ],
   "exclude": [
     "./dist/**/*",
-    "node_modules", 
+    "node_modules",
   ]
 }

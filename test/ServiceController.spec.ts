@@ -36,7 +36,7 @@ describe('ServiceController', () => {
       });
 
       // noinspection ES6MissingAwait
-      controller.start(ctx);
+      void controller.start(ctx);
 
       await expect(startedPromise).resolves.toEqual(expectedMetadata);
     });
@@ -84,7 +84,7 @@ describe('ServiceController', () => {
 
       await controller.start(ctx);
       // noinspection ES6MissingAwait
-      controller.stop(ctx);
+      void controller.stop(ctx);
 
       await expect(stoppedPromise).resolves.toEqual(expectedMetadata);
     });
@@ -107,7 +107,7 @@ describe('ServiceController', () => {
       const service = aSlowStartingService(0.5, TimeUnit.Second);
       const controller = new ServiceController(service);
 
-      controller.start(ctx);
+      void controller.start(ctx);
 
       await expect(controller.stop(ctx)).toResolve();
       expect(service.finishedStartup).toBeTrue();

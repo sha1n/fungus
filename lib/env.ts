@@ -33,7 +33,10 @@ class StoppedEnv {
   private readonly ctx: InternalRuntimeContext;
   private readonly servicesGraph: ServiceGraph;
 
-  constructor(private readonly specs: readonly ServiceSpec[], name: string) {
+  constructor(
+    private readonly specs: readonly ServiceSpec[],
+    name: string
+  ) {
     this.logger = createLogger(name);
     this.ctx = new InternalRuntimeContext(name);
     this.servicesGraph = this.init();
