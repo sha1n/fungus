@@ -50,15 +50,16 @@ function createContainerService(opts: DockerContainerOptions): Service {
       started = true;
       logger.debug('container %s started', name);
 
-      if (opts?.healthCheck) {
+      const healthCheck = opts.healthCheck;
+      if (healthCheck) {
         logger.info('waiting for container %s to pass health check...', name);
         await retryAround(
           async () => {
             logger.info('checking health of container %s...', name);
-            await opts.healthCheck.check();
+            await healthCheck.check();
           },
 
-          opts.healthCheck?.retryPolicy || simpleRetryPolicy(10, 1, { units: TimeUnit.Second })
+          healthCheck.retryPolicy || simpleRetryPolicy(10, 1, { units: TimeUnit.Second })
         );
         logger.info('container %s is ready', name);
       }
@@ -128,7 +129,7 @@ function interpret(name: string, opts: DockerContainerOptions): string {
     command.push('--network', opts.network);
   }
 
-  const appendArgs = (flag: string, index: { [key: string]: string }, delim: string) => {
+  const appendArgs = (flag: string, index: { [key: string]: string } | undefined, delim: string) => {
     if (index) {
       for (const key of Object.keys(index)) {
         command.push(flag, `${key}${delim}${index[key]}`);
@@ -171,8 +172,10 @@ async function executeCommand(cmd: string): Promise<number> {
 function registerExitHandlers<T>(...handlers: Array<() => Promise<T>>): void {
   handlers.forEach(h => {
     exitEvents.forEach(e => {
-      process.on(e, async () => {
-        await h().catch(logger.error);
+      process.on(e, () => {
+        void (async () => {
+          await h().catch(logger.error);
+        })();
       });
     });
   });
