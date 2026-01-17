@@ -81,14 +81,14 @@ await env.stop();
 - A demo that uses Docker based services can be found [here](examples/docker/index.ts). This implementation relies on your shell environment and requires a Docker client and an available Docker daemon.
   
 ```
-yarn install && yarn run docker-demo
+pnpm install && pnpm run docker-demo
 ```
 
 ### In-Memory Services Demo
 - An in-memory services demo code can be found [here](examples/in-memory/index.ts).
 
 ```
-yarn install && yarn run simple-demo
+pnpm install && pnpm run simple-demo
 ```
 
 <hr>
@@ -96,9 +96,13 @@ yarn install && yarn run simple-demo
 
 ## Install
 ```
-yarn add @sha1n/fungus
+pnpm add @sha1n/fungus
 ```
 or 
 ```
 npm i @sha1n/fungus
+```
+or
+```
+yarn add @sha1n/fungus
 ```
