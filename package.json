@@ -10,6 +10,12 @@
     "node": ">=24"
   },
   "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": [
     "./dist/index.js",
     "./dist/types/index.d.ts"
@@ -31,7 +37,9 @@
     "test": "pnpm jest && pnpm lint",
     "docker-demo": "DEMO='1' DEBUG='*' pnpm run ts-node ./examples/docker",
     "simple-demo": "DEMO='1' DEBUG='*' pnpm run ts-node ./examples/in-memory",
-    "prepare": "pnpm run build"
+    "prepare": "pnpm run build",
+    "release": "pnpm test && pnpm build && pnpm publish --no-git-checks",
+    "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "@sha1n/dagraph": "^0.0.5",
