@@ -21,6 +21,9 @@
     "graph"
   ],
   "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "tsc",
+    "jest": "jest --coverage",
     "lint": "eslint --fix .",
     "test": "pnpm jest && pnpm lint",
     "docker-demo": "DEMO='1' DEBUG='*' pnpm run ts-node ./examples/docker",

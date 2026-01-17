@@ -37,7 +37,7 @@ class ServiceMock implements Service {
     readonly id: string,
     readonly failOnStart?: boolean,
     readonly failOnStop?: boolean
-  ) { }
+  ) {}
 
   async start(): Promise<ServiceMetadata> {
     this.startIndex = ServiceMock.startSequence++;

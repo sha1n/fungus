@@ -32,4 +32,4 @@ function configureEnvironment(logger: Logger): Environment {
   );
 }
 
-run(configureEnvironment);
+void run(configureEnvironment);

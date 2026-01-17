@@ -174,7 +174,7 @@ function registerExitHandlers<T>(...handlers: Array<() => Promise<T>>): void {
     exitEvents.forEach(e => {
       process.on(e, () => {
         void (async () => {
-          await h().catch(logger.error);
+          void h().catch(logger.error);
         })();
       });
     });

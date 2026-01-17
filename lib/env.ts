@@ -73,7 +73,7 @@ class StoppedEnv {
         });
       }
 
-      Promise.allSettled(serviceGraph.getBootstrapServices().map(s => s.start(ctx)));
+      void Promise.allSettled(serviceGraph.getBootstrapServices().map(s => s.start(ctx)));
     });
 
     try {

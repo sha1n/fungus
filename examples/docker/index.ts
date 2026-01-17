@@ -106,4 +106,4 @@ function isAlive(url: string): () => Promise<void> {
   };
 }
 
-run(configureEnvironment);
+void run(configureEnvironment);

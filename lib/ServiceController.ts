@@ -1,5 +1,5 @@
-import assert = require('assert');
-import EventEmitter = require('events');
+import assert from 'assert';
+import { EventEmitter } from 'events';
 import { InternalRuntimeContext } from './env';
 import { createLogger } from './logger';
 import { Service, ServiceId, ServiceMetadata } from './types';
