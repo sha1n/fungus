@@ -43,11 +43,11 @@ export default function start(): Promise<ServerHandle> {
         const stop = () =>
           new Promise<void>(resolve => {
             server.close(); // good enough for the demo
-            sleep(realisticPauseTime()) // making it feel more real
+            void sleep(realisticPauseTime()) // making it feel more real
               .then(resolve);
           });
 
-        sleep(realisticPauseTime()) // making it feel more real
+        void sleep(realisticPauseTime()) // making it feel more real
           .then(() => resolve({ scheme: 'http', address, port, stop }));
       });
   });

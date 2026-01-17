@@ -45,7 +45,7 @@ export default tseslint.config(
         }
       ],
 
-      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-floating-promises': 'error',
       'unused-imports/no-unused-imports': 'error'
       // 'no-return-await': 'error', // Deprecated in ESLint, but strict-type-checked might handle it differently.
