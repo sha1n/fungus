@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   testMatch: ['**/test/**/*.spec.ts'],
   roots: ['./test'],
   coveragePathIgnorePatterns: ['test/*', 'dist/*', 'examples/*'],
