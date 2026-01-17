@@ -48,14 +48,15 @@ jobs:
           git tag -a "$VERSION" -m "Release $VERSION"
           git push origin "$VERSION"
 
+      - uses: pnpm/action-setup@v4
+        if: steps.meta.outputs.action != 'skip'
+
       - uses: actions/setup-node@v4
         if: steps.meta.outputs.action != 'skip'
         with:
           node-version-file: ".nvmrc"
           registry-url: 'https://registry.npmjs.org'
-
-      - uses: pnpm/action-setup@v4
-        if: steps.meta.outputs.action != 'skip'
+          cache: 'pnpm'
 
       - name: Install and Build
         if: steps.meta.outputs.action != 'skip'
