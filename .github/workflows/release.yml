@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from package.json
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Determine if we should tag or publish
+        id: meta
+        run: |
+          VERSION=v${{ steps.pkg.outputs.version }}
+          if [[ "${{ github.ref }}" == "refs/tags/v*" ]]; then
+            echo "action=publish" >> $GITHUB_OUTPUT
+            echo "Triggered by tag: ${{ github.ref }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            if git rev-parse "$VERSION" >/dev/null 2>&1; then
+              echo "action=skip" >> $GITHUB_OUTPUT
+              echo "Tag $VERSION already exists. Skipping auto-tag."
+            else
+              echo "action=tag_and_publish" >> $GITHUB_OUTPUT
+              echo "New version detected: $VERSION. Will tag and publish."
+            fi
+          fi
+
+      - name: Create Tag (if on master)
+        if: steps.meta.outputs.action == 'tag_and_publish'
+        run: |
+          VERSION=v${{ steps.pkg.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+      - uses: actions/setup-node@v4
+        if: steps.meta.outputs.action != 'skip'
+        with:
+          node-version-file: ".nvmrc"
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.meta.outputs.action != 'skip'
+        with:
+          version: 10
+
+      - name: Install and Build
+        if: steps.meta.outputs.action != 'skip'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          pnpm test
+
+      - name: Publish to NPM
+        if: steps.meta.outputs.action != 'skip'
+        run: pnpm publish --no-git-checks --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.meta.outputs.action != 'skip'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pkg.outputs.version }}
+          generate_release_notes: true
