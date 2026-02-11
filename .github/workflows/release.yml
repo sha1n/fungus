@@ -9,71 +9,98 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  # Job 1: Detect version bump in package.json and create a tag if it doesn't exist.
+  # This job runs only on pushes to the master branch.
+  detect-and-tag:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tagged: ${{ steps.tag.outputs.tagged }}
+      version: ${{ steps.pkg.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Extract the version from package.json to check against existing tags.
+      - name: Get version from package.json
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      # If the tag for the current version doesn't exist, create and push it.
+      # This effectively "converts" a version bump commit on master into a tagged release.
+      # Note: Pushing a tag using GITHUB_TOKEN usually does NOT trigger a new workflow run,
+      # so we rely on the dependent 'publish' job in this same workflow to handle the release.
+      - name: Create and push tag
+        id: tag
+        run: |
+          VERSION=v${{ steps.pkg.outputs.version }}
+          if ! git rev-parse "$VERSION" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$VERSION" -m "Release $VERSION"
+            git push origin "$VERSION"
+            echo "tagged=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Job 2: Build, Test, and Publish the package.
+  # This runs if:
+  # 1. It was manually triggered (workflow_dispatch).
+  # 2. A tag was pushed (standard release process).
+  # 3. The 'detect-and-tag' job successfully created a new tag (auto-release on version bump).
+  publish:
+    needs: detect-and-tag
+    if: |
+      always() && 
+      (
+        github.event_name == 'workflow_dispatch' || 
+        startsWith(github.ref, 'refs/tags/v') || 
+        needs.detect-and-tag.outputs.tagged == 'true'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v6
+      
+      # If triggered by a tag push, ensure we checkout that specific tag.
+      - name: Checkout Tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 0
-
-      - name: Get version from package.json
-        id: pkg
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Determine if we should tag or publish
-        id: meta
-        run: |
-          VERSION=v${{ steps.pkg.outputs.version }}
-          if [[ "${{ github.ref }}" == "refs/tags/v*" ]]; then
-            echo "action=publish" >> $GITHUB_OUTPUT
-            echo "Triggered by tag: ${{ github.ref }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            if git rev-parse "$VERSION" >/dev/null 2>&1; then
-              echo "action=skip" >> $GITHUB_OUTPUT
-              echo "Tag $VERSION already exists. Skipping auto-tag."
-            else
-              echo "action=tag_and_publish" >> $GITHUB_OUTPUT
-              echo "New version detected: $VERSION. Will tag and publish."
-            fi
-          fi
-
-      - name: Create Tag (if on master)
-        if: steps.meta.outputs.action == 'tag_and_publish'
-        run: |
-          VERSION=v${{ steps.pkg.outputs.version }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$VERSION" -m "Release $VERSION"
-          git push origin "$VERSION"
+          ref: ${{ github.ref_name }}
 
       - uses: pnpm/action-setup@v4
-        if: steps.meta.outputs.action != 'skip'
-
       - uses: actions/setup-node@v6
-        if: steps.meta.outputs.action != 'skip'
         with:
           node-version-file: ".nvmrc"
-          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install and Build
-        if: steps.meta.outputs.action != 'skip'
         run: |
           pnpm install --frozen-lockfile
           pnpm build
           pnpm test
 
-      - name: Publish to NPM
-        if: steps.meta.outputs.action != 'skip'
-        run: |
-          rm -f .npmrc
-          npm publish --provenance --access public
+      # Re-read version from package.json in the current workspace.
+      # This ensures we have the correct version regardless of how the job was triggered.
+      - name: Get version
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Publish to NPM (OIDC)
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.meta.outputs.action != 'skip'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.pkg.outputs.version }}
+          # Determine the tag name:
+          # - If triggered by tag, use that reference.
+          # - Otherwise (master push/manual), construct it from the package.json version.
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.pkg.outputs.version) }}
           generate_release_notes: true
