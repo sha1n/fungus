@@ -1,79 +1,80 @@
-name: Release
+name: Release & Sync
 
 on:
   push:
-    branches:
-      - master
-    tags:
-      - 'v*'
+    branches: [ master ]
+    tags: [ 'v*' ]
   workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force sync NPM and Tags'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  release:
+  sync-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get version from package.json
-        id: pkg
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Determine if we should tag or publish
-        id: meta
-        run: |
-          VERSION=v${{ steps.pkg.outputs.version }}
-          if [[ "${{ github.ref }}" == "refs/tags/v*" ]]; then
-            echo "action=publish" >> $GITHUB_OUTPUT
-            echo "Triggered by tag: ${{ github.ref }}"
-          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            if git rev-parse "$VERSION" >/dev/null 2>&1; then
-              echo "action=skip" >> $GITHUB_OUTPUT
-              echo "Tag $VERSION already exists. Skipping auto-tag."
-            else
-              echo "action=tag_and_publish" >> $GITHUB_OUTPUT
-              echo "New version detected: $VERSION. Will tag and publish."
-            fi
-          fi
-
-      - name: Create Tag (if on master)
-        if: steps.meta.outputs.action == 'tag_and_publish'
-        run: |
-          VERSION=v${{ steps.pkg.outputs.version }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$VERSION" -m "Release $VERSION"
-          git push origin "$VERSION"
-
       - uses: pnpm/action-setup@v4
-        if: steps.meta.outputs.action != 'skip'
-
-      - uses: actions/setup-node@v6
-        if: steps.meta.outputs.action != 'skip'
+      - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Install and Build
-        if: steps.meta.outputs.action != 'skip'
+      - name: Audit State
+        id: audit
+        run: |
+          # 1. Get Local Version
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          echo "local=$LOCAL_VERSION" >> $GITHUB_OUTPUT
+          
+          # 2. Get NPM Version (handle 404 for new packages)
+          NPM_VERSION=$(npm view $PKG_NAME version 2>/dev/null || echo "0.0.0")
+          echo "npm=$NPM_VERSION" >> $GITHUB_OUTPUT
+          
+          # 3. Check Git Tag
+          if git rev-parse "v$LOCAL_VERSION" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Determine Actions
+          if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
+            echo "needs_publish=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install & Build
+        if: steps.audit.outputs.needs_publish == 'true' || github.event_name == 'push'
         run: |
           pnpm install --frozen-lockfile
           pnpm build
           pnpm test
 
-      - name: Publish to NPM
-        if: steps.meta.outputs.action != 'skip'
+      - name: Create Missing Tag
+        if: steps.audit.outputs.tag_exists == 'false'
         run: |
-          rm -f .npmrc
-          npm publish --provenance --access public
+          VERSION=v${{ steps.audit.outputs.local }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Sync Release $VERSION"
+          git push origin "$VERSION"
 
-      - name: Create GitHub Release
-        if: steps.meta.outputs.action != 'skip'
+      - name: Publish to NPM
+        if: steps.audit.outputs.needs_publish == 'true'
+        run: npm publish --provenance --access public
+      - name: GitHub Release
+        if: steps.audit.outputs.tag_exists == 'false' || steps.audit.outputs.needs_publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.pkg.outputs.version }}
+          tag_name: v${{ steps.audit.outputs.local }}
           generate_release_notes: true
