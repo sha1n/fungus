@@ -44,14 +44,14 @@
   "dependencies": {
     "@sha1n/dagraph": "^0.3.1",
     "@types/debug": "^4.1.12",
-    "uuid": "^9.0.1"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sha1n/about-time": "^0.2.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.2.3",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^11.0.0",
     "@types/wtfnode": "^0.10.0",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",

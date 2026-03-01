@@ -6,8 +6,10 @@ module.exports = {
   verbose: true,
   maxWorkers: '100%',
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest'
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.js$': ['ts-jest', { tsconfig: { allowJs: true } }]
   },
+  transformIgnorePatterns: ['/node_modules/(?!.*uuid)'],
   testEnvironment: 'node',
   preset: 'ts-jest',
   slowTestThreshold: 1.5 * 1000,
