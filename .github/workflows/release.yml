@@ -74,7 +74,7 @@ jobs:
         run: npm publish --provenance --access public
       - name: GitHub Release
         if: steps.audit.outputs.tag_exists == 'false' || steps.audit.outputs.needs_publish == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.audit.outputs.local }}
           generate_release_notes: true
